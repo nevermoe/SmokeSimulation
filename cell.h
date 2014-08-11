@@ -12,9 +12,9 @@ public:
 	Cell*** cells_;
 	int nX_, nY_, nZ_;
 
-	Velocity*** velX_;	//for MAC grid, vel is stored at the edge of cells
-	Velocity*** velY_;	//so it cannot be stored in Cell struct;
-	Velocity*** velZ_;
+	GLdouble*** velX_;	//for MAC grid, vel is stored at the edge of cells
+	GLdouble*** velY_;	//so it cannot be stored in Cell struct;
+	GLdouble*** velZ_;
 
 	GLdouble cellSize_;	//side length of one cell
 };

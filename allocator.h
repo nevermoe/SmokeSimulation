@@ -18,6 +18,7 @@ T*** Allocator<T>::Alloc3D(int w, int h, int d)
 		field[i] = new T*[h+1];
 		for( int j=0; j<h; j++ ) {
 			field[i][j] = new T[d];
+			memset(field[i][j], 0, sizeof(T)*d);
 		}
 		field[i][h] = NULL;
 	}

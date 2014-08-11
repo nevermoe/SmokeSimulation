@@ -27,7 +27,17 @@ typedef Eigen::SparseMatrix<GLdouble> DoubleSpaMat;
 #define LOOP_FOR_CELLS(nX, nY, nZ) for(int i=0;i<(nX);i++) for(int j=0;j<(nY);j++) for(int k=0;k<(nZ);k++) {
 #define LOOP_FOR_INNER_CELLS(nX, nY, nZ) for(int i=1;i<(nX)-1;i++) for(int j=1;j<(nY-1);j++) for(int k=1;k<(nZ-1);k++) {
 #define LOOP_FOR_PARTICLES(pl) for(int l=0;l<pl.size();l++){Particle* p=particles_[l];
-#define LOOP_FOR_VELS(nX, nY, nZ) for(int i=0;i<(nX);i++) for(int j=0;j<(nY);j++) for(int k=0;k<(nZ);k++) {
+
+#define LOOP_FOR_XVELS for(int i=1;i<grid_.nX_;i++) \
+			for(int j=1;j<grid_.nY_-1;j++) \
+			for(int k=1;k<grid_.nZ_-1;k++) {
+#define LOOP_FOR_YVELS for(int i=1;i<grid_.nX_-1;i++) \
+			for(int j=1;j<grid_.nY_;j++) \
+			for(int k=1;k<grid_.nZ_-1;k++) {
+#define LOOP_FOR_ZVELS for(int i=1;i<grid_.nX_-1;i++) \
+			for(int j=1;j<grid_.nY_-1;j++) \
+			for(int k=1;k<grid_.nZ_;k++) {
+
 #define END_LOOP }
 
 #define MAT2LINEAR(i,j,k) (i)*grid_.nX_*grid_.nY_+(j)*grid_.nY_+(k)

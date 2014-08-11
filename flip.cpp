@@ -84,14 +84,18 @@ void Flip::_InitGrid()
 	grid_.nX_ = grid_.nY_ = grid_.nZ_ = N;
 
 	Allocator<Cell> cellAlloc;
-	Allocator<Velocity> velAlloc;
+	Allocator<GLdouble> velAlloc;
 
 	grid_.cells_ = cellAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_);
-	grid_.vel_ = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_+1, grid_.nZ_+1);
+	grid_.velX_ = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_, grid_.nZ_);
+	grid_.velY_ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_+1, grid_.nZ_);
+	grid_.velZ_ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_+1);
 	grid_.cellSize_ = simualateAreaX_ / grid_.nX_;
 
 	savedGrid_.cells_ = cellAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_);
-	savedGrid_.vel_ = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_+1, grid_.nZ_+1);
+	savedGrid_.velX_ = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_, grid_.nZ_);
+	savedGrid_.velY_ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_+1, grid_.nZ_);
+	savedGrid_.velZ_ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_+1);
 	savedGrid_.cellSize_ = simualateAreaX_ / grid_.nX_;
 }
 
@@ -203,9 +207,9 @@ void Flip::Project()
 	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
 		if (grid_.cells_[i][j][k].type_ == FLUID) {
 			index = MAT2LINEAR(i,j,k);
-			div = - ( (grid_.vel_[i+1][j][k].x_ - grid_.vel_[i][j][k].x_)
-				+ (grid_.vel_[i][j+1][k].y_ - grid_.vel_[i][j][k].y_) 
-				+ (grid_.vel_[i][j][k+1].z_ - grid_.vel_[i][j][k].z_) ) / dx;
+			div = - ( (grid_.velX_[i+1][j][k] - grid_.velX_[i][j][k])
+				+ (grid_.velY_[i][j+1][k] - grid_.velY_[i][j][k]) 
+				+ (grid_.velZ_[i][j][k+1] - grid_.velZ_[i][j][k]) ) / dx;
 			rightHand(index) = div;
 		}
 	} END_LOOP
@@ -353,20 +357,44 @@ void Flip::Project()
 	}
 	
 	
+	//update velocities
+	//FIXME:set boundary vel to zero
 	scale = DT/(RHO*dx);
-	LOOP_FOR_INNER_CELLS(grid_.nX_+1, grid_.nY_+1, grid_.nZ_+1) {
-		grid_.vel_[i][j][k].x_ -= scale*(grid_.cells_[i][j][k].press_ 
+
+	//update x vel;
+	LOOP_FOR_XVELS {
+		if( i == 0 || i == grid_.nX_ ) {
+			grid_.velX_[i][j][k] = 0;
+			continue;
+		}
+		grid_.velX_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
 				- grid_.cells_[i-1][j][k].press_);
-		grid_.vel_[i][j][k].z_ -= scale*(grid_.cells_[i][j][k].press_ 
+	} END_LOOP
+
+	//update y vel;
+	LOOP_FOR_YVELS {
+		if( j == 0 || j == grid_.nY_ ) {
+			grid_.velY_[i][j][k] = 0;
+			continue;
+		}
+		grid_.velY_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
 				- grid_.cells_[i][j-1][k].press_);
-		grid_.vel_[i][j][k].z_ -= scale*(grid_.cells_[i][j][k].press_ 
+	} END_LOOP
+
+	//update z vel;
+	LOOP_FOR_ZVELS {
+		if( k == 0 || k == grid_.nZ_ ) {
+			grid_.velZ_[i][j][k] = 0;
+			continue;
+		}
+		grid_.velY_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
 				- grid_.cells_[i][j][k-1].press_);
+	} END_LOOP
 #if 0
 		std::cout << grid_.vel_[i][j][k].x_ << " " <<
 			grid_.vel_[i][j][k].y_ << " " <<
 			grid_.vel_[i][j][k].z_ << std::endl;
 #endif
-	} END_LOOP
 }
 
 void Flip::AddExtForce()
@@ -378,10 +406,16 @@ void Flip::AddExtForce()
 
 void Flip::SaveGridVel()
 {
-	LOOP_FOR_CELLS(grid_.nX_+1, grid_.nX_+1, grid_.nZ_+1) {
-		savedGrid_.vel_[i][j][k].x_ = grid_.vel_[i][j][k].x_;
-		savedGrid_.vel_[i][j][k].y_ = grid_.vel_[i][j][k].y_;
-		savedGrid_.vel_[i][j][k].z_ = grid_.vel_[i][j][k].z_;
+	LOOP_FOR_XVELS {
+		savedGrid_.velX_[i][j][k] = grid_.velX_[i][j][k];
+	} END_LOOP
+
+	LOOP_FOR_YVELS {
+		savedGrid_.velY_[i][j][k] = grid_.velY_[i][j][k];
+	} END_LOOP
+
+	LOOP_FOR_ZVELS {
+		savedGrid_.velZ_[i][j][k] = grid_.velZ_[i][j][k];
 	} END_LOOP
 }
 
@@ -391,13 +425,19 @@ void Flip::ExtrapolateVelocity()
 
 void Flip::SolvePICFLIP()
 {
-	Allocator<Velocity> velAlloc;
-	Velocity*** deltaVel = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_+1, grid_.nZ_+1);
+	Allocator<GLdouble> velAlloc;
+	GLdouble*** deltaVelX = velAlloc.Alloc3D(grid_.nX_+1, grid_.nY_, grid_.nZ_);
+	GLdouble*** deltaVelY = velAlloc.Alloc3D(grid_.nX_, grid_.nY_+1, grid_.nZ_);
+	GLdouble*** deltaVelZ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_+1);
 
-	LOOP_FOR_CELLS(grid_.nX_+1, grid_.nY_+1, grid_.nZ_+1) {
-		deltaVel[i][j][k].x_ = grid_.vel_[i][j][k].x_ - savedGrid_.vel_[i][j][k].x_;
-		deltaVel[i][j][k].y_ = grid_.vel_[i][j][k].y_ - savedGrid_.vel_[i][j][k].y_;
-		deltaVel[i][j][k].z_ = grid_.vel_[i][j][k].z_ - savedGrid_.vel_[i][j][k].z_;
+	LOOP_FOR_XVELS {
+		deltaVelX[i][j][k] = grid_.velX_[i][j][k] - savedGrid_.velX_[i][j][k];
+	} END_LOOP
+	LOOP_FOR_YVELS {
+		deltaVelY[i][j][k] = grid_.velY_[i][j][k] - savedGrid_.velY_[i][j][k];
+	} END_LOOP
+	LOOP_FOR_ZVELS {
+		deltaVelZ[i][j][k] = grid_.velZ_[i][j][k] - savedGrid_.velZ_[i][j][k];
 	} END_LOOP
 
 	//trilinear interpolation
@@ -411,10 +451,10 @@ void Flip::SolvePICFLIP()
 		ty = (p->position_.y_ - j*grid_.cellSize_) / grid_.cellSize_;
 		tz = (p->position_.z_ - k*grid_.cellSize_) / grid_.cellSize_;
 
-		p->velocity_.x_ = tx*deltaVel[i+1][j][k].x_ + (1-tx)*deltaVel[i][j][k].x_;
-		p->velocity_.x_ = tx*deltaVel[i][j+1][k].y_ + (1-tx)*deltaVel[i][j][k].y_;
-		p->velocity_.x_ = tx*deltaVel[i][j][k+1].z_ + (1-tx)*deltaVel[i][j][k].z_;
-	}END_LOOP
+		p->velocity_.x_ = tx*deltaVelX[i+1][j][k] + (1-tx)*deltaVelX[i][j][k];
+		p->velocity_.x_ = tx*deltaVelY[i][j+1][k] + (1-tx)*deltaVelY[i][j][k];
+		p->velocity_.x_ = tx*deltaVelX[i][j][k+1] + (1-tx)*deltaVelZ[i][j][k];
+	} END_LOOP
 }
 
 void Flip::ComputeDensity()
@@ -428,27 +468,14 @@ void Flip::TransferParticleVelToCell()
 	GLdouble weightedVel;
 	GLdouble weight;
 	ParticleList pl;
-//	LOOP_FOR_INNER_CELLS(grid_.nX_+1,grid_.nY_+1,grid_.nZ_+1) {
-	LOOP_FOR_CELLS(grid_.nX_+1,grid_.nY_+1,grid_.nZ_+1) {
-#if 0
-		if(grid_.cells_[i][j][k].type_ == SOLID || grid_.cells_[i-1][j][k].type_ == SOLID 
-				|| grid_.cells_[i][j-1][k].type_ == SOLID || grid_.cells_[i][j][k-1].type_ == SOLID) {
-			grid_.vel_[i][j][k].x_ = 0;
-			grid_.vel_[i][j][k].y_ = 0;
-			grid_.vel_[i][j][k].z_ = 0;
-#if 1
-			std::cout << i << " " << j << " " << k << std::endl;
-#endif
-			continue;
-		}
-#endif
-
-		//interpolate x velocity to grid
+	GLdouble pX, pY, pZ;
+	GLdouble cellCenterX, cellCenterY, cellCenterZ;
+	
+	//interpolate x velocity to grid
+	LOOP_FOR_XVELS {
 		pl = _GetNeighborParticles(i, j, k, 1, 2, 2);
 		weight = 0;
 		weightedVel = 0;
-		GLdouble pX, pY, pZ;
-		GLdouble cellCenterX, cellCenterY, cellCenterZ;
 		LOOP_FOR_PARTICLES(pl) {
 			cellCenterX = (i)*grid_.cellSize_;
 			cellCenterY = (j+0.5)*grid_.cellSize_;
@@ -462,9 +489,11 @@ void Flip::TransferParticleVelToCell()
 			weightedVel += p->velocity_.x_ * weight;
 		} END_LOOP
 		if(weight != 0)
-			grid_.vel_[i][j][k].x_ = weightedVel / weight;
+			grid_.velX_[i][j][k] = weightedVel / weight;
+	}END_LOOP
 
-		//interpolate y velocity to grid
+	//interpolate y velocity to grid
+	LOOP_FOR_YVELS {
 		pl = _GetNeighborParticles(i, j, k, 2, 1, 2);
 		weight = 0;
 		weightedVel = 0;
@@ -481,9 +510,11 @@ void Flip::TransferParticleVelToCell()
 			weightedVel += p->velocity_.y_ * weight;
 		} END_LOOP
 		if(weight != 0)
-			grid_.vel_[i][j][k].y_ = weightedVel / weight;
+			grid_.velY_[i][j][k] = weightedVel / weight;
+	}END_LOOP
 
 		//interpolate z velocity to grid
+	LOOP_FOR_ZVELS {
 		pl = _GetNeighborParticles(i, j, k, 2, 2, 1);
 		weight = 0;
 		weightedVel = 0;
@@ -500,7 +531,7 @@ void Flip::TransferParticleVelToCell()
 			weightedVel += p->velocity_.z_ * weight;
 		} END_LOOP
 		if(weight != 0)
-			grid_.vel_[i][j][k].z_ = weightedVel / weight;
+			grid_.velZ_[i][j][k] = weightedVel / weight;
 
 	} END_LOOP
 
