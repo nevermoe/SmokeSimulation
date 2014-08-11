@@ -3,7 +3,8 @@
 Controller* g_controller = NULL;
 
 int main(int argc, char **argv) {
-	Object* object = new Object;
+	//Object* object = new Object;
+	Object* object = new Flip;
 	::g_controller = new Controller(argc, argv);
 	::g_controller->RegisterObject(object);
 	::g_controller->BeginLoop();

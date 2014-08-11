@@ -9,32 +9,27 @@ class Object: public EventListener{
 public:
 	Object();
 
-	void SetDrawMode(GLenum mode);
-	void Reset();
 
 	void ComputeNormal(GLfloat v[3][3], GLfloat normal[]);
 
 	void Cube();
 
+	virtual void SimulateStep() {};
 	virtual void Show();
 	virtual bool LoadFile(char* fileName);
 	virtual void ComputeVertexNormal() {}
-	virtual void ComputeValenceColor() {}
-	virtual void ComputeCurvatureColor() {}
+	virtual void Reset();
 
-	virtual void CalculateParameterization() {}
 
 	virtual void MouseButton(GLFWwindow *window, int button,int action,int mods);
 	virtual void MouseMotion(GLFWwindow *window, double nx, double ny);
 	virtual void Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods) {}
 	virtual void Resize(GLFWwindow *window, int x, int y);
 
-	void SetShading(int mode);
-	void SetCurvatureMode(int mode);
 	void SetParentWindow(GLFWwindow* windowHandle);
 
 protected:
-	fstream file_;
+	std::fstream file_;
 
 	GLfloat rotX_;
 	GLfloat rotY_;

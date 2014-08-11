@@ -1,7 +1,7 @@
 #include "core.h"
 
 Object::Object() {
-	Reset();
+	//Reset();
 }
 
 void Object::SetParentWindow(GLFWwindow* windowHandle)
@@ -104,10 +104,10 @@ bool Object::LoadFile(char* fileName)
 {
 	file_.open(fileName);
 	if (!file_) {
-		cout << "Open file: " << fileName << " failed!" << endl;
+		std::cout << "Open file: " << fileName << " failed!" << std::endl;
 		return false;
 	}
-	cout << "Open file: " << fileName << " succeed!" << endl;
+	std::cout << "Open file: " << fileName << " succeed!" << std::endl;
 
 	return true;
 }
@@ -137,16 +137,7 @@ void Object::Cube() {                               // 立方体の描画
 		glEnd();                               // 四角形描画終了
 }
 
-
 void Object::Show() 
 {
 	Cube();
-}
-
-void Object::SetShading(int mode)
-{
-}
-
-void Object::SetCurvatureMode(int mode)
-{
 }

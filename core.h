@@ -15,7 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
-using namespace std;
+//using namespace std;
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -37,18 +37,17 @@ using namespace std;
 #include <GL/glu.h>
 
 
-typedef Eigen::Triplet<GLdouble> T; 
+#include "allocator.h"
+#include "simple_vector.h"
+#include "particle.h"
+#include "cell.h"
 #include "arcball.h"
 #include "event_listener.h"
-//#include "quaternion.h"
-//#include "my_color.h"
-//#include "my_traits.h"
-//typedef OpenMesh::TriMesh_ArrayKernelT<MyTraits> MyMesh;
 #include "camera.h"
-//#include "my_math.h"
-//#include "parameterization.h"
 #include "object.h"
+#include "gridobject.h"
 #include "controller.h"
+#include "flip.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /*

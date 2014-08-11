@@ -1,10 +1,6 @@
-////////////////////////////////////////
-// tester.cpp
-////////////////////////////////////////
-
 #include "core.h"
 
-#define WINDOWTITLE	"Poly Drawer"
+#define WINDOWTITLE	"FLIP"
 
 extern Controller* g_controller;
 
@@ -44,8 +40,8 @@ void Controller::RegisterObject(Object* object)
 
 
 Controller::Controller(int argc,char **argv) {
-	winX_ = 640;
-	winY_ = 480;
+	winX_ = 1280;
+	winY_ = 960;
 
 	activeObj_ = -1;
 	objectNo_ = 0;
@@ -58,14 +54,14 @@ Controller::Controller(int argc,char **argv) {
 
 	// Initialize components
 	if (!glfwInit()) {
-		cout << "glfwInit() failed!" << endl;
+		std::cout << "glfwInit() failed!" << std::endl;
 		exit(0);
 	}
 
 	// Create the window
 	windowHandle_ = glfwCreateWindow(winX_, winY_, WINDOWTITLE, NULL, NULL);
 	if (!windowHandle_) {
-		cout << "Create Window failed"  << endl;
+		std::cout << "Create Window failed"  << std::endl;
 		exit(0);
 	}
 	glfwMakeContextCurrent(windowHandle_);
@@ -122,8 +118,10 @@ void Controller::Reset() {
 void Controller::Render() {
 	//Begin drawing scene
 	camera_->Reset();
-	for(int i = 0 ; i < objectNo_ ; i++)
+	for(int i = 0 ; i < objectNo_ ; i++) {
+		objects_[i]->SimulateStep();
 		objects_[i]->Show();
+	}
 
 	//Finish drawing scene
 	//glFinish();
@@ -159,20 +157,6 @@ void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action
 				break;
 			case GLFW_KEY_R:			//reset
 				Reset();
-				break;
-			case GLFW_KEY_C:
-				objects_[activeObj_]->ComputeValenceColor();
-				/*
-				isLightOn_ = !isLightOn_;
-				if (isLightOn_) {
-					glEnable(GL_LIGHT0);
-					glEnable(GL_LIGHTING);
-				}
-				else {
-					glDisable(GL_LIGHT0);
-					glDisable(GL_LIGHTING);
-				}
-				*/
 				break;
 			case GLFW_KEY_LEFT_CONTROL:
 				isCtrlPressed_ = true;
