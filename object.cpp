@@ -114,27 +114,27 @@ bool Object::LoadFile(char* fileName)
 
 void Object::Cube() {                               // 立方体の描画
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		GLfloat vertices[][3] = { { -1.0f, -1.0f, -1.0f },
-				{ 1.0f, -1.0f, -1.0f }, { 1.0f, 1.0f, -1.0f },
-				{ -1.0f, 1.0f, -1.0f }, { -1.0f, -1.0f, 1.0f },
-				{ 1.0f, -1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f },
-				{ -1.0f, 1.0f, 1.0f } };              // 頂点座標値 
-		int faces[][4] = { { 1, 2, 6, 5 }, { 2, 3, 7, 6 }, { 4, 5, 6, 7 },
-				{ 0, 4, 7, 3 }, { 0, 1, 5, 4 }, { 0, 3, 2, 1 } };
-		// 各面の頂点番号列
-		GLfloat colors[][3] = { { 0.0f, 1.0f, 1.0f }, { 1.0f, 0.0f, 1.0f },
-				{ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.5f, 0.5f },
-				{ 0.5f, 0.0f, 0.5f }, { 0.5f, 0.5f, 0.0f } };
-		// 各面の描画色
-		glBegin(GL_QUADS);                  // 四角形描画開始
-		for (int i = 0; i < 6; i++) {
+	GLfloat vertices[][3] = { { -1.0f, -1.0f, -1.0f },
+		{ 1.0f, -1.0f, -1.0f }, { 1.0f, 1.0f, -1.0f },
+		{ -1.0f, 1.0f, -1.0f }, { -1.0f, -1.0f, 1.0f },
+		{ 1.0f, -1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f },
+		{ -1.0f, 1.0f, 1.0f } };              // 頂点座標値 
+	int faces[][4] = { { 1, 2, 6, 5 }, { 2, 3, 7, 6 }, { 4, 5, 6, 7 },
+		{ 0, 4, 7, 3 }, { 0, 1, 5, 4 }, { 0, 3, 2, 1 } };
+	// 各面の頂点番号列
+	GLfloat colors[][3] = { { 0.0f, 1.0f, 1.0f }, { 1.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.5f, 0.5f },
+		{ 0.5f, 0.0f, 0.5f }, { 0.5f, 0.5f, 0.0f } };
+	// 各面の描画色
+	glBegin(GL_QUADS);                  // 四角形描画開始
+	for (int i = 0; i < 6; i++) {
 		//	glBegin(GL_QUAD_STRIP);                  // 四角形描画開始
-			glColor3fv(colors[i]);
-			for (int j = 0; j < 4; j++)
-				glVertex3fv(vertices[faces[i][j]]);
+		glColor3fv(colors[i]);
+		for (int j = 0; j < 4; j++)
+			glVertex3fv(vertices[faces[i][j]]);
 		//	glEnd();
-		}                                         // 四角形頂点列の指定
-		glEnd();                               // 四角形描画終了
+	}                                         // 四角形頂点列の指定
+	glEnd();                               // 四角形描画終了
 }
 
 void Object::Show() 

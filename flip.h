@@ -17,6 +17,8 @@ typedef Eigen::SparseMatrix<GLdouble> DoubleSpaMat;
 #define	GRAVITY         9.8
 
 #define	WALL_THICKNESS  (1.0/N)
+#define usolid			0
+#define KERNEL_H		1.4
 
 #define SOLID			0
 #define FLUID			1
