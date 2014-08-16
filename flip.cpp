@@ -50,7 +50,6 @@ void Flip::Show()
 	}
 	
 	glEnd();
-	
 }
 
 void Flip::_InsertToCell(Particle* particle)
@@ -60,7 +59,8 @@ void Flip::_InsertToCell(Particle* particle)
 	int k = (int)(particle->position_.z_ / grid_.cellSize_);
 
 #if 0
-	std::cout << i << " " << j << " " << k  << std::endl;
+	std::cout << "_InsertToCell "; 
+	std::cout << particle->no << " "  << std::endl;
 #endif
 	grid_.cells_[i][j][k].particles_.push_back(particle);
 }
@@ -75,6 +75,7 @@ void Flip::_GenerateFluidBlock(GLdouble xL, GLdouble xU, GLdouble yL, GLdouble y
 	GLdouble startY = 1.25 * particleIntervalY;
 	GLdouble startZ = 1.25 * particleIntervalZ;
 
+	static int no = 0;
 	for (GLdouble i = startX ; i <= simualateAreaX_-startX;
 			i += particleIntervalX) {
 		for (GLdouble j = startY ; j <= simualateAreaY_-startY; 
@@ -86,6 +87,7 @@ void Flip::_GenerateFluidBlock(GLdouble xL, GLdouble xU, GLdouble yL, GLdouble y
 					particle->position_.x_ = i;
 					particle->position_.y_ = j;
 					particle->position_.z_ = k;
+					particle->no = no++;
 					particles_.push_back(particle);
 #if 0
 					std::cout << i << " " << j << " " << k << std::endl;
@@ -201,6 +203,34 @@ void Flip::_InitBoundary()
 
 }
 
+void Flip::_InitDensity()
+{
+	GLfloat h = DENSITY/grid_.nX_;
+	LOOP_FOR_INNER_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
+		Particle *p = new Particle;
+		p->position_.x_ = (i+0.5)*h;
+		p->position_.y_ = (j+0.5)*h;
+		p->position_.z_ = (k+0.5)*h;
+		//p->type = FLUID;
+		p->mass_ = 1.0;
+		particles_.push_back(p);
+	} END_LOOP
+
+	MatchParticlesToCell();
+	maxDensity_ = 1.0;
+	ComputeDensity();
+	maxDensity_ = 0.0;
+	LOOP_FOR_PARTICLES(particles_){
+		maxDensity_ = std::max(maxDensity_,p->density_);
+		delete p;
+	} END_LOOP
+	particles_.clear();
+
+	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
+		grid_.cells_[i][j][k].particles_.clear();
+	} END_LOOP
+}
+
 void Flip::Init()
 {
 	step_ = 0;
@@ -212,34 +242,34 @@ void Flip::Init()
 	//init boundary and mark solid
 	_InitBoundary();
 
+	//_InitDensity();
 
-	_GenerateFluidBlock(0.2, 0.4, 0.10, 0.6, 0.2, 0.8);
+#if 1
+	_GenerateFluidBlock(0.2, 0.4, 0.06, 0.4, 0.2, 0.8);
 	_GenerateFluidBlock(WALL_THICKNESS, 1.0-WALL_THICKNESS, WALL_THICKNESS, 
-			0.10, WALL_THICKNESS, 1.0-WALL_THICKNESS);
-	//_GenerateFluidBlock(WALL_THICKNESS, 1.0-WALL_THICKNESS, WALL_THICKNESS, 
-	//		0.6, WALL_THICKNESS, 1.0-WALL_THICKNESS);
+			0.06, WALL_THICKNESS, 1.0-WALL_THICKNESS);
+#endif
 #if 0
-	LOOP_FOR_CELLS(grid_.nX_,grid_.nY_,grid_.nZ_) {
-		if(grid_.cells_[i][j][k].type_ == FLUID) {
-			std::cout << "is fluid" << std::endl;
-		}
-	} END_LOOP
+	_GenerateFluidBlock(WALL_THICKNESS, 1.0-WALL_THICKNESS, WALL_THICKNESS, 
+			0.6, WALL_THICKNESS, 1.0-WALL_THICKNESS);
+#endif
+#if 0
+	_GenerateFluidBlock(0.6, 0.8, 0.6, 
+			0.8, 0.25, 0.75);
+	_GenerateFluidBlock(WALL_THICKNESS, 1.0-WALL_THICKNESS, WALL_THICKNESS, 
+			0.1, WALL_THICKNESS, 1.0-WALL_THICKNESS);
+#endif
+#if 0
+	_GenerateFluidBlock(0.5, 0.75, 0.5, 
+			0.75, 0.25, 0.5);
+#endif
+#if 0
+	_GenerateFluidBlock(0.6, 0.8, 0.6, 
+			0.8, 0.25, 0.75);
+	_GenerateFluidBlock(0.2, 0.4, 0.2, 
+			0.3, 0.25, 0.75);
 #endif
 
-#if 0
-	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
-		if(grid_.cells_[i][j][k].type_ != SOLID)
-			std::cout << i << " " << j << " " << k << " is not solid"<< std::endl;
-	} END_LOOP
-#endif
-
-#if 0
-	//init air
-	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
-		if (grid_.cells_[i][j][k].type_ != SOLID && grid_.cells_[i][j][k].type_ != FLUID)
-			grid_.cells_[i][j][k].type_ = AIR;
-	} END_LOOP
-#endif
 
 }
 
@@ -300,11 +330,11 @@ void Flip::Project()
 				rightHand(index) -= (grid_.velZ_[i][j][k] - usolid) / dx;
 			}
 			if(grid_.cells_[i][j][k+1].type_ == SOLID) {
-				rightHand(index) += (grid_.velY_[i][j][k+1] - usolid) / dx;
+				rightHand(index) += (grid_.velZ_[i][j][k+1] - usolid) / dx;
 			}
 		}
 	} END_LOOP
-#if 1
+#if 0
 	std::cout << std::endl << "rightHand: "<< std::endl << rightHand.transpose() << std::endl;
 #endif
 
@@ -319,7 +349,7 @@ void Flip::Project()
 			 iMinus1, jMinus1, kMinus1;	//value
 	GLdouble scale = DT / (RHO*dx*dx);
 
-#if 1
+#if 0
 	std::cout << std::endl << "coefficients:" << std::endl;
 #endif
 	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
@@ -412,7 +442,7 @@ void Flip::Project()
 		coefficients.push_back(DoubleTriplet(index0, indexIMinus1, iMinus1) );
 		coefficients.push_back(DoubleTriplet(index0, indexJMinus1, jMinus1) );
 		coefficients.push_back(DoubleTriplet(index0, indexKMinus1, kMinus1) );
-#if 1
+#if 0
 		std::cout << index0 << " " << indexIPlus1 << " " << indexJPlus1 << 
 			" " << indexKPlus1 << " " << indexIMinus1  << " " 
 			<< " " << indexJMinus1 << " " << indexKMinus1 << std::endl;
@@ -431,19 +461,16 @@ void Flip::Project()
 		exit(-1);
 	}
 	pressure = solver.solve(rightHand);
-#if 1
+#if 0
 	std::cout << std::endl << "pressure:"<< std::endl << pressure.transpose() << std::endl;
 #endif
 
 	for(int l = 0 ; l < pressure.size() ; l++) {
 		//change linear index to 3D index
-		int tmp = l / grid_.nY_;
-		int i = tmp / grid_.nX_;
-		int j = tmp % grid_.nX_;
-		int k = l - (i*grid_.nX_*grid_.nY_+j*grid_.nY_);
-#if 0
-		std::cout << i << " " << j << " " << k << std::endl;
-#endif
+		int i = l / (grid_.nY_*grid_.nZ_);
+		int j = (l - i * grid_.nY_ * grid_.nZ_) / grid_.nZ_;
+		int k = (l - i * grid_.nY_ * grid_.nZ_) % grid_.nZ_;
+
 		grid_.cells_[i][j][k].press_ = pressure[l];
 	}
 	
@@ -452,6 +479,7 @@ void Flip::Project()
 	//FIXME:set boundary vel to zero
 	scale = DT/(RHO*dx);
 
+#if 1
 	//update x vel;
 	LOOP_FOR_XVELS {
 		if(grid_.cells_[i][j][k].type_ == FLUID) {
@@ -475,12 +503,32 @@ void Flip::Project()
 			grid_.velZ_[i][j][k+1] += scale*grid_.cells_[i][j][k].press_;
 		}
 	} END_LOOP
+#else
+	//update x vel;
+	LOOP_FOR_XVELS {
+		if(grid_.cells_[i][j][k].type_ == FLUID) {
+			grid_.velX_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
+					- grid_.cells_[i-1][j][k].press_);
+		}
+	} END_LOOP
 
-#if 0
-		std::cout << grid_.vel_[i][j][k].x_ << " " <<
-			grid_.vel_[i][j][k].y_ << " " <<
-			grid_.vel_[i][j][k].z_ << std::endl;
+	//update y vel;
+	LOOP_FOR_YVELS {
+		if(grid_.cells_[i][j][k].type_ == FLUID) {
+			grid_.velY_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
+					- grid_.cells_[i][j-1][k].press_);
+		}
+	} END_LOOP
+
+	//update z vel;
+	LOOP_FOR_ZVELS {
+		if(grid_.cells_[i][j][k].type_ == FLUID) {
+			grid_.velZ_[i][j][k] -= scale*(grid_.cells_[i][j][k].press_ 
+					- grid_.cells_[i][j][k-1].press_);
+		}
+	} END_LOOP
 #endif
+
 }
 
 void Flip::AddExtForce()
@@ -516,18 +564,18 @@ void Flip::SolvePICFLIP()
 	GLdouble*** deltaVelY = velAlloc.Alloc3D(grid_.nX_, grid_.nY_+1, grid_.nZ_);
 	GLdouble*** deltaVelZ = velAlloc.Alloc3D(grid_.nX_, grid_.nY_, grid_.nZ_+1);
 
-#if 1
-	std::cout << std::endl << "deltaVelY: " << std::endl;
+#if 0
+	std::cout << std::endl << "deltaVelX: " << std::endl;
 #endif
 	LOOP_FOR_XVELS {
 		deltaVelX[i][j][k] = grid_.velX_[i][j][k] - savedGrid_.velX_[i][j][k];
+#if 0
+		std::cout << deltaVelX[i][j][k] << "   ";
+#endif
 	} END_LOOP
 
 	LOOP_FOR_YVELS {
 		deltaVelY[i][j][k] = grid_.velY_[i][j][k] - savedGrid_.velY_[i][j][k];
-#if 1
-		std::cout << deltaVelY[i][j][k] << " ";
-#endif
 	} END_LOOP
 #if 0
 	std::cout << std::endl;
@@ -551,25 +599,46 @@ void Flip::SolvePICFLIP()
 		ty = (p->position_.y_ - j*grid_.cellSize_) / grid_.cellSize_;
 		tz = (p->position_.z_ - k*grid_.cellSize_) / grid_.cellSize_;
 
+#if 1
 		p->velocity_.x_ += tx*deltaVelX[i+1][j][k] + (1-tx)*deltaVelX[i][j][k];
 		p->velocity_.y_ += ty*deltaVelY[i][j+1][k] + (1-ty)*deltaVelY[i][j][k];
 		p->velocity_.z_ += tz*deltaVelZ[i][j][k+1] + (1-tz)*deltaVelZ[i][j][k];
-#if 0
-		//if(std::abs(deltaVelX[i][j+1][k]-0.0588) > 1e-3)
-		std::cout << i << " " << j << " " << k << std::endl;
-#endif
-#if 0
-		std::cout << tx << " " << ty << " " << tz << std::endl;
-#endif
-#if 0
-		std::cout << p->velocity_.x_ << " " << p->velocity_.y_ << " " <<
-			p->velocity_.z_ << std::endl;
+#else
+		p->velocity_.x_ = tx*grid_.velX_[i+1][j][k] + (1-tx)*grid_.velX_[i][j][k];
+		p->velocity_.y_ = ty*grid_.velY_[i][j+1][k] + (1-ty)*grid_.velY_[i][j][k];
+		p->velocity_.z_ = tz*grid_.velZ_[i][j][k+1] + (1-tz)*grid_.velZ_[i][j][k];
+//		p->velocity_.x_ += (1-ALPHA)*(tx*grid_.velX_[i+1][j][k] + (1-tx)*grid_.velX_[i][j][k]);
+//		p->velocity_.y_ += (1-ALPHA)*(ty*grid_.velY_[i][j+1][k] + (1-ty)*grid_.velY_[i][j][k]);
+//		p->velocity_.z_ += (1-ALPHA)*(tz*grid_.velZ_[i][j][k+1] + (1-tz)*grid_.velZ_[i][j][k]);
+//		p->velocity_.x_ += ALPHA * (tx*deltaVelX[i+1][j][k] + (1-tx)*deltaVelX[i][j][k]);
+//		p->velocity_.y_ += ALPHA * (ty*deltaVelY[i][j+1][k] + (1-ty)*deltaVelY[i][j][k]);
+//		p->velocity_.z_ += ALPHA * (tz*deltaVelZ[i][j][k+1] + (1-tz)*deltaVelZ[i][j][k]);
 #endif
 	} END_LOOP
 }
 
 void Flip::ComputeDensity()
 {
+
+	LOOP_FOR_PARTICLES(particles_) {
+		
+		int i = (int)(p->position_.x_ / grid_.cellSize_);
+		int j = (int)(p->position_.y_ / grid_.cellSize_);
+		int k = (int)(p->position_.z_ / grid_.cellSize_);
+
+		// Find Neighbors
+		ParticleList neighbors = _GetNeighborParticles(i,j,k,1,1,1);
+		GLdouble wsum = 0.0;
+		for( int m = 0; m < neighbors.size(); m++ ) {
+			Particle* np = neighbors[m];
+			Eigen::Vector3d subVec(p->position_.x_-np->position_.x_, 
+					p->position_.y_-np->position_.y_,
+					p->position_.z_-np->position_.z_);
+			GLdouble w = np->mass_*Kernel::SmoothKernel(subVec.norm(), 4.0*DENSITY/N);
+			wsum += w;
+		}
+		p->density_ = wsum / maxDensity_;
+	} END_LOOP
 }
 
 /*FIXME: Loop for particles is better?*/
@@ -588,6 +657,7 @@ void Flip::TransferParticleVelToCell()
 #endif
 	LOOP_FOR_XVELS {
 		pl = _GetNeighborParticles(i, j, k, 1, 2, 2);
+		//pl = _GetNeighborParticles(i, j, k, 1, 1, 1);
 		weight = totalWeight = 0;
 		weightedVel = 0;
 		LOOP_FOR_PARTICLES(pl) {
@@ -599,7 +669,7 @@ void Flip::TransferParticleVelToCell()
 			pZ = p->position_.z_;
 			Eigen::Vector3d subVec(pX-cellCenterX, 
 					pY-cellCenterY,	pZ-cellCenterZ);
-			weight = _ReciprocalKernal(subVec.norm());
+			weight = Kernel::SharpKernel(subVec.norm(), KERNEL_SHARP);
 			weightedVel += p->velocity_.x_ * weight;
 			totalWeight += weight;
 		} END_LOOP
@@ -610,6 +680,8 @@ void Flip::TransferParticleVelToCell()
 				<< grid_.velX_[i][j][k] << std::endl;
 #endif
 		}
+		else
+			grid_.velX_[i][j][k] = 0;
 	}END_LOOP
 
 #if 0 
@@ -618,6 +690,7 @@ void Flip::TransferParticleVelToCell()
 	//interpolate y velocity to grid
 	LOOP_FOR_YVELS {
 		pl = _GetNeighborParticles(i, j, k, 2, 1, 2);
+		//pl = _GetNeighborParticles(i, j, k, 1, 1, 1);
 		weight = totalWeight = 0;
 		weightedVel = 0;
 		LOOP_FOR_PARTICLES(pl) {
@@ -629,7 +702,7 @@ void Flip::TransferParticleVelToCell()
 			pZ = p->position_.z_;
 			Eigen::Vector3d subVec(pX-cellCenterX, 
 					pY-cellCenterY,	pZ-cellCenterZ);
-			weight = _ReciprocalKernal(subVec.norm());
+			weight = Kernel::SharpKernel(subVec.norm(), KERNEL_SHARP);
 			weightedVel += p->velocity_.y_ * weight;
 			totalWeight += weight;
 		} END_LOOP
@@ -639,11 +712,14 @@ void Flip::TransferParticleVelToCell()
 			std::cout << grid_.velY_[i][j][k] << std::endl;
 #endif
 		}
+		else
+			grid_.velY_[i][j][k] = 0;
 	}END_LOOP
 
 		//interpolate z velocity to grid
 	LOOP_FOR_ZVELS {
 		pl = _GetNeighborParticles(i, j, k, 2, 2, 1);
+		//pl = _GetNeighborParticles(i, j, k, 1, 1, 1);
 		weight = totalWeight = 0;
 		weightedVel = 0;
 		LOOP_FOR_PARTICLES(pl) {
@@ -655,12 +731,14 @@ void Flip::TransferParticleVelToCell()
 			pZ = p->position_.z_;
 			Eigen::Vector3d subVec(pX-cellCenterX, 
 					pY-cellCenterY,	pZ-cellCenterZ);
-			weight = _ReciprocalKernal(subVec.norm());
+			weight = Kernel::SharpKernel(subVec.norm(), KERNEL_SHARP);
 			weightedVel += p->velocity_.z_ * weight;
 			totalWeight += weight;
 		} END_LOOP
 		if(weight != 0)
 			grid_.velZ_[i][j][k] = weightedVel / totalWeight;
+		else
+			grid_.velZ_[i][j][k] = 0;
 
 	} END_LOOP
 
@@ -684,10 +762,6 @@ ParticleList Flip::_GetNeighborParticles(int i, int j, int k, int w, int h, int 
 	return res;
 }
 
-GLdouble Flip::_ReciprocalKernal(GLdouble d)
-{
-	return KERNEL_H*KERNEL_H/std::max(d,1e-5) - 1.0;
-}
 
 void Flip::MatchParticlesToCell()
 {
@@ -695,7 +769,13 @@ void Flip::MatchParticlesToCell()
 		grid_.cells_[i][j][k].particles_.clear();
 	} END_LOOP
 
+#if 0
+	std::cout << std::endl << "MatchParticlesToCell" <<std::endl;
+#endif
 	LOOP_FOR_PARTICLES(particles_) {
+#if 0
+		std::cout << p->no << std::endl;
+#endif
 		_InsertToCell(p);
 	} END_LOOP
 
@@ -712,8 +792,7 @@ void Flip::AdvectParticles()
 {
 	LOOP_FOR_PARTICLES(particles_) {
 #if 0
-		std::cout << p->velocity_.x_ << " " << p->velocity_.y_
-			<< " " << p->velocity_.z_ << std::endl;
+		std::cout << p->velocity_.y_ << std::endl;
 #endif
 		p->position_.x_ += DT*p->velocity_.x_;
 		p->position_.y_ += DT*p->velocity_.y_;
@@ -723,22 +802,79 @@ void Flip::AdvectParticles()
 
 void Flip::ParticleCollisionDetection()
 {
+
+#if 0
+	LOOP_FOR_PARTICLES(particles_) {
+		int i = (int)(p->position_.x_ / grid_.cellSize_);
+		int j = (int)(p->position_.y_ / grid_.cellSize_);
+		int k = (int)(p->position_.z_ / grid_.cellSize_);
+		ParticleList neighbors = _GetNeighborParticles(i,j,k,1,1,1);
+		// First, find the normalized vector n from the center of 
+		// circle1 to the center of circle2
+		LOOP_FOR_PARTICLES(neighbors) {
+			Particle* np = neighbors[l];
+			Eigen::Vector3d n(p->position_.x_-np->position_.x_,
+					p->position_.y_-np->position_.y_,
+					p->position_.z_-np->position_.z_);
+#if 0
+			std::cout << n.norm() << " " << p->density_ << std::endl;
+#endif
+			if (n.norm() >= p->density_/8) 
+				continue;
+			n.normalize();
+			// Find the length of the component of each of the movement
+			// vectors along n. 
+			// a1 = v1 . n
+			// a2 = v2 . n
+			Eigen::Vector3d v1(p->velocity_.x_, p->velocity_.y_, p->velocity_.z_);
+			Eigen::Vector3d v2(p->velocity_.x_, p->velocity_.y_, p->velocity_.z_);
+			GLdouble a1 = v1.dot(n);
+			GLdouble a2 = v2.dot(n);
+
+			// Using the optimized version, 
+			// optimizedP =  2(a1 - a2)
+			//              -----------
+			//                m1 + m2
+			GLdouble optimizedP = (2.0 * (a1 - a2)) / (p->mass_ + np->mass_);
+
+			// Calculate v1', the new movement vector of circle1
+			// v1' = v1 - optimizedP * m2 * n
+			v1 = v1 - optimizedP * np->mass_ * n;
+
+			// Calculate v1', the new movement vector of circle1
+			// v2' = v2 + optimizedP * m1 * n
+			v2 = v2 + optimizedP * p->mass_ * n;
+
+			p->velocity_.x_ = v1.x();
+			p->velocity_.y_ = v1.y();
+			p->velocity_.z_ = v1.z();
+			
+			np->velocity_.x_ = v2.x();
+			np->velocity_.y_ = v2.y();
+			np->velocity_.z_ = v2.z();
+		}END_LOOP
+
+	} END_LOOP
+#endif
+
 	/*FIXME: using more flexible collision detection*/
 	LOOP_FOR_PARTICLES(particles_) {
 		int i, j, k;
-		do {
-			p->position_.x_ = std::max(p->position_.x_,0.0);
-			p->position_.y_ = std::max(p->position_.y_,0.0);
-			p->position_.z_ = std::max(p->position_.z_,0.0);
+		p->position_.x_ = std::max(p->position_.x_,0.0);
+		p->position_.y_ = std::max(p->position_.y_,0.0);
+		p->position_.z_ = std::max(p->position_.z_,0.0);
 		//	p->position_.x_ = isnan(p->position_.x_) ? 0.0 : p->position_.x_;
 		//	p->position_.y_ = isnan(p->position_.y_) ? 0.0 : p->position_.y_;
 		//	p->position_.z_ = isnan(p->position_.z_) ? 0.0 : p->position_.z_;
-			i = (int)(p->position_.x_ / grid_.cellSize_);
-			j = (int)(p->position_.y_ / grid_.cellSize_);
-			k = (int)(p->position_.z_ / grid_.cellSize_);
-			i = (i >= grid_.nX_ ? grid_.nX_-1 : i);
-			j = (j >= grid_.nY_ ? grid_.nY_-1 : j);
-			k = (k >= grid_.nZ_ ? grid_.nZ_-1 : k);
+		i = (int)(p->position_.x_ / grid_.cellSize_);
+		j = (int)(p->position_.y_ / grid_.cellSize_);
+		k = (int)(p->position_.z_ / grid_.cellSize_);
+		i = (i >= grid_.nX_ ? grid_.nX_-1 : i);
+		j = (j >= grid_.nY_ ? grid_.nY_-1 : j);
+		k = (k >= grid_.nZ_ ? grid_.nZ_-1 : k);
+
+		while(i < 1 || j < 1 || k < 1 || 
+				i > grid_.nX_-2 || j > grid_.nY_-2 || k > grid_.nZ_-2) {
 #if 0
 			std::cout << i << " " << j << " " << k << std::endl;
 #endif
@@ -746,21 +882,26 @@ void Flip::ParticleCollisionDetection()
 				p->position_.x_ += boundary->normals[i][j][k].x_;
 				p->position_.y_ += boundary->normals[i][j][k].y_;
 				p->position_.z_ += boundary->normals[i][j][k].z_;
-			//	p->velocity_.x_ += 10* boundary->normals[i][j][k].x_;
-			//	p->velocity_.y_ += 10* boundary->normals[i][j][k].y_;
-			//	p->velocity_.z_ += 10* boundary->normals[i][j][k].z_;
-			//	p->position_.x_ += p->velocity_.x_ * DT;
-			//	p->position_.y_ += p->velocity_.y_ * DT;
-			//	p->position_.z_ += p->velocity_.z_ * DT;
-			//	if (boundary->normals[i][j][k].x_ != 0)
-			//		p->velocity_.x_ = 0;
-			//	if (boundary->normals[i][j][k].y_ != 0)
-			//		p->velocity_.y_ = 0;
-			//	if (boundary->normals[i][j][k].z_ != 0)
-			//		p->velocity_.z_ = 0;
+				if (boundary->normals[i][j][k].x_ != 0)
+					p->velocity_.x_ = 0;
+				if (boundary->normals[i][j][k].y_ != 0)
+					p->velocity_.y_ = 0;
+				if (boundary->normals[i][j][k].z_ != 0)
+					p->velocity_.z_ = 0;
 			}
-		}while(i < 1 || j < 1 || k < 1 || 
-				i > grid_.nX_-2 || j > grid_.nY_-2 || k > grid_.nZ_-2);
+			p->position_.x_ = std::max(p->position_.x_,0.0);
+			p->position_.y_ = std::max(p->position_.y_,0.0);
+			p->position_.z_ = std::max(p->position_.z_,0.0);
+			//	p->position_.x_ = isnan(p->position_.x_) ? 0.0 : p->position_.x_;
+			//	p->position_.y_ = isnan(p->position_.y_) ? 0.0 : p->position_.y_;
+			//	p->position_.z_ = isnan(p->position_.z_) ? 0.0 : p->position_.z_;
+			i = (int)(p->position_.x_ / grid_.cellSize_);
+			j = (int)(p->position_.y_ / grid_.cellSize_);
+			k = (int)(p->position_.z_ / grid_.cellSize_);
+			i = (i >= grid_.nX_ ? grid_.nX_-1 : i);
+			j = (j >= grid_.nY_ ? grid_.nY_-1 : j);
+			k = (k >= grid_.nZ_ ? grid_.nZ_-1 : k);
+		}
 	} END_LOOP
 }
 
@@ -775,18 +916,19 @@ void Flip::SimulateStep()
 	//timestep++;
 	step_++;
 
+
 	//add externaal force, e.g. gravity
 	AddExtForce();
 
 	//match particles to corresponding cells
 	MatchParticlesToCell();
 	
-	ComputeDensity();
+	//ComputeDensity();
 	
 	//transfer particle velocities to cell
 	TransferParticleVelToCell();
-#if 1
-	std::cout << std::endl << "after TransferParticleVelToCell, grid_.velY_: " << std::endl;
+#if 0
+	std::cout << std::endl << "after TransferParticleVelToCell, grid_.vel_: " << std::endl;
 	LOOP_FOR_YVELS {
 		std::cout << grid_.velY_[i][j][k] <<  "   ";
 	} END_LOOP
@@ -794,32 +936,38 @@ void Flip::SimulateStep()
 #endif
 
 	SaveGridVel();
-
+#if 0
+	std::cout << std::endl << "savedGrid_:" << std::endl;
+	LOOP_FOR_YVELS {
+		std::cout << grid_.velY_[i][j][k] << "   ";
+	} END_LOOP
+	std::cout << std::endl;
+#endif
 	//solve pressure, enforce boundaries, extrapolate velocities
-	EnforceBoundary();
+	//EnforceBoundary();
 	Project();
 	EnforceBoundary();
-#if 1
-	std::cout << std::endl << "after Project: grid_.velY_: " << std::endl;
+#if 0
+	std::cout << std::endl << "after Project: grid_.vel_: " << std::endl;
 	LOOP_FOR_YVELS {
-		std::cout << grid_.velY_[i][j][k] << "    ";
+		std::cout << grid_.velY_[i][j][k] << "   ";
 	} END_LOOP
 	std::cout << std::endl;
 #endif
 
-#if 1
-	std::cout << std::endl << "before SolvePICFLIP: particle.velY: " << std::endl;
+#if 0
+	std::cout << std::endl << "before SolvePICFLIP: particle.vel: " << std::endl;
 	LOOP_FOR_PARTICLES(particles_) {
-		std::cout << p->velocity_.y_ << "    ";
+		std::cout << p->velocity_.y_ << "   ";
 	} END_LOOP
 	std::cout << std::endl;
 #endif
 
     SolvePICFLIP();
-#if 1
-	std::cout << std::endl << "after SolvePICFLIP: particle.velY: " << std::endl;
+#if 0
+	std::cout << std::endl << "after SolvePICFLIP: particle.vel: " << std::endl;
 	LOOP_FOR_PARTICLES(particles_) {
-		std::cout << p->velocity_.y_ << "    ";
+		std::cout << p->velocity_.y_ << "   ";
 	} END_LOOP
 	std::cout << std::endl;
 #endif
@@ -827,7 +975,39 @@ void Flip::SimulateStep()
 	//mix pic and flip velocities
 	MixPICFLIP();
 	
+#if 0
+	ParticleList tmpp;
+	LOOP_FOR_PARTICLES(particles_) {
+		Particle* p0 = new Particle;
+		p0->position_.y_ = p->position_.y_;
+		tmpp.push_back(p0);
+	} END_LOOP
+#endif
 	AdvectParticles();
+#if 0
+	std::cout << std::endl << "cells: " << std::endl;
+	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
+		if(grid_.cells_[i][j][k].particles_.empty())
+			continue;
+		LOOP_FOR_PARTICLES(grid_.cells_[i][j][k].particles_) {
+			std::cout << i << " " << j << " " << k << " "
+				<< p->no << " " << p->velocity_.y_ << std::endl;
+		} END_LOOP
+		std::cout << std::endl;
+	} END_LOOP
+	std::cout << std::endl << "particles: " << std::endl;
+	LOOP_FOR_PARTICLES(particles_) {
+		std::cout << p->no << " " << p->velocity_.y_ << std::endl;
+	} END_LOOP
+#endif
+#if 0
+	std::cout << particles_.size() << std::endl;
+	int no=0;
+	LOOP_FOR_CELLS(grid_.nX_, grid_.nY_, grid_.nZ_) {
+		no += grid_.cells_[i][j][k].particles_.size();
+	}END_LOOP
+	std::cout << no << std::endl << std::endl;
+#endif
 
 	ParticleCollisionDetection();
 	

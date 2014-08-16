@@ -37,6 +37,7 @@
 #include <GL/glu.h>
 
 
+#include "kernel.h"
 #include "allocator.h"
 #include "simple_vector.h"
 #include "particle.h"

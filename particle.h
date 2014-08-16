@@ -9,6 +9,9 @@ public:
 	GLdouble mass_;
 	Position position_;
 	Velocity velocity_;
+	int type_;
+	int no;
+	~Particle() {std::cout << "Particle Destroyed!" << std::endl;}
 };
 
 
