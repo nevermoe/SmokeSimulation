@@ -2,10 +2,13 @@
 #define CONTROLLER_H
 
 #include "core.h"
+#include "object.h"
+#include "arcball.h"
+#include "camera.h"
 
 class Controller {
 public:
-	Controller(int argc,char **argv);
+	Controller(int argc,char **argv, const char *windowName);
 	~Controller();
 
 	void BeginLoop();

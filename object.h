@@ -2,12 +2,14 @@
 #define DRAWER_H
 
 #include "core.h"
+#include "arcball.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
 class Object: public EventListener{
 public:
 	Object();
+	~Object();
 
 
 	void ComputeNormal(GLfloat v[3][3], GLfloat normal[]);

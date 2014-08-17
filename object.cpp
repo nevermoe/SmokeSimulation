@@ -1,7 +1,13 @@
 #include "core.h"
+#include "object.h"
 
-Object::Object() {
+Object::Object() 
+{
 	//Reset();
+}
+
+Object::~Object()
+{
 }
 
 void Object::SetParentWindow(GLFWwindow* windowHandle)
@@ -11,7 +17,7 @@ void Object::SetParentWindow(GLFWwindow* windowHandle)
 
 void Object::Resize(GLFWwindow* windowHandle, int x, int y)
 {
-	arcball_.setWidthHeight(x, y);
+	arcball_.SetWidthHeight(x, y);
 }
 
 void Object::MouseButton(GLFWwindow *window, int button,int action,int mods) 
@@ -22,11 +28,11 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 		::glfwGetCursorPos(window, &mouseX, &mouseY);
 		if(action == GLFW_PRESS) {
 			isLeftKeyPressed_ = true;
-			arcball_.startRotation(mouseX, mouseY);
+			arcball_.StartRotation(mouseX, mouseY);
 		}
 		else if(action == GLFW_RELEASE) {
 			isLeftKeyPressed_ = false;
-			arcball_.stopRotation();
+			arcball_.StopRotation();
 		}
 	}
 	else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
@@ -36,11 +42,11 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 		if (action == GLFW_PRESS) {
 			isRightKeyPressed_ = true;
 			::glfwGetCursorPos(window, &mouseX, &mouseY);
-			arcball_.startZooming(mouseX, mouseY);
+			arcball_.StartZooming(mouseX, mouseY);
 		}
 		else if(action ==GLFW_RELEASE) {
 			isRightKeyPressed_ = false;
-			arcball_.stopZooming();
+			arcball_.StopZooming();
 		}
 	}
 }
@@ -50,10 +56,10 @@ void Object::MouseMotion(GLFWwindow *window, double nx, double ny)
 	if(isLeftKeyPressed_ && isCtrlPressed_) {
 	}
 	else if(isLeftKeyPressed_) {
-		arcball_.updateRotation(nx, ny);
+		arcball_.UpdateRotation(nx, ny);
 	}
 	else if(isRightKeyPressed_) {
-		arcball_.updateZooming(nx, ny);
+		arcball_.UpdateZooming(nx, ny);
 	}
 }
 
@@ -85,11 +91,11 @@ void Object::ComputeNormal(GLfloat v[3][3], GLfloat normal[])
 void Object::Reset() {
 	int width, height;
 	glfwGetWindowSize(windowHandle_, &width, &height);
-	arcball_.setWidthHeight(width, height);
+	arcball_.SetWidthHeight(width, height);
 
-	depth_ = 5.0;
-	rotX_ = 25;
-	rotY_ = -30;
+	depth_ = 1.8;
+	rotX_ = 10;
+	rotY_ = -20;
 
 
 	glMatrixMode(GL_MODELVIEW);

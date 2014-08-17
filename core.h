@@ -15,7 +15,6 @@
 #include <fstream>
 #include <vector>
 #include <map>
-//using namespace std;
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -36,23 +35,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-
-#include "kernel.h"
-#include "allocator.h"
-#include "simple_vector.h"
-#include "particle.h"
-#include "cell.h"
-#include "arcball.h"
 #include "event_listener.h"
-#include "camera.h"
-#include "object.h"
-#include "gridobject.h"
-#include "controller.h"
-#include "flip.h"
 
-////////////////////////////////////////////////////////////////////////////////
-/*
-This file just has a bunch of common stuff used by all objects. It mainly just
-includes GL and some other standard headers.
-*/
 #endif

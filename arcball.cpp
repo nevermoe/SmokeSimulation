@@ -1,9 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include "core.h"
-
-using namespace std;
-using namespace Eigen;
+#include "arcball.h"
 
 /**
  * \ingroup GLVisualization
@@ -13,9 +11,9 @@ Arcball::Arcball()
 {
 	this->ballRadius=600;
 	isRotating=false;
-	zoomRate = 0.1;
+	zoomRate = 0.003;
 	width=height=0;
-	reset();
+	Reset();
 }
 
 /**
@@ -24,11 +22,11 @@ Arcball::Arcball()
  * \param w Width of the rendering window
  * \param h Height of the rendering window
  **/
-void Arcball::setWidthHeight(int w, int h)
+void Arcball::SetWidthHeight(int w, int h)
 {  
 	width=w;
 	height=h;
-	ballRadius = min((int)(w/2), (int)(h/2));
+	ballRadius = std::min((int)(w/2), (int)(h/2));
 }
 
 /**
@@ -36,12 +34,12 @@ void Arcball::setWidthHeight(int w, int h)
  * Set the radius of the ball (a typical radius for a 1024x768 window is 600
  * \param newRadius The radius of the spherical dragging area
  **/
-void Arcball::setRadius(float newRadius)
+void Arcball::SetRadius(float newRadius)
 {  
 	ballRadius = newRadius;
 }
 
-void Arcball::startZooming(int x, int y)
+void Arcball::StartZooming(int x, int y)
 {
 	//store original transform matrix
 	glGetFloatv(GL_MODELVIEW_MATRIX, startMatrix);
@@ -51,17 +49,17 @@ void Arcball::startZooming(int x, int y)
 	isZooming = true;
 }
 
-void Arcball::updateZooming(int x, int y)
+void Arcball::UpdateZooming(int x, int y)
 {
 	if (isZooming) {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(0.0f, 0.0f, zoomRate * (x - startZoomX) );
 	}
-	applyRotationMatrix();
+	ApplyRotationMatrix();
 }
 
-void Arcball::stopZooming()
+void Arcball::StopZooming()
 {
 	isZooming = false;
 }
@@ -74,7 +72,7 @@ void Arcball::stopZooming()
  * \param _y Vertical position of the mouse (0,0) = upperleft corner (w,h) = lower right
  *
  **/
-void Arcball::startRotation(int _x, int _y)
+void Arcball::StartRotation(int _x, int _y)
 {
 	int x = ( (_x)-(width/2) );
 	int y = ((height/2)-_y);
@@ -82,7 +80,7 @@ void Arcball::startRotation(int _x, int _y)
 	//store original transform matrix
 	glGetFloatv(GL_MODELVIEW_MATRIX, startMatrix);
 
-	startRotationVector = convertXY(x,y);
+	startRotationVector = ConvertXY(x,y);
 	startRotationVector.normalize();
 
 	currentRotationVector=  startRotationVector;
@@ -97,19 +95,19 @@ void Arcball::startRotation(int _x, int _y)
  * \param _x Horizontal position of the mouse (0,0) = upperleft corner (w,h) = lower right
  * \param _y Vertical position of the mouse (0,0) = upperleft corner (w,h) = lower right
  **/
-void Arcball::updateRotation(int _x, int _y)
+void Arcball::UpdateRotation(int _x, int _y)
 {  
 	int x = ( (_x)-(width/2) );
 	int y = ((height/2)-_y);
 
-	currentRotationVector = convertXY(x,y);
+	currentRotationVector = ConvertXY(x,y);
 
 	currentRotationVector.normalize();
 
 	//Fixed by MY
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	applyRotationMatrix();
+	ApplyRotationMatrix();
 }
 
 /**
@@ -118,7 +116,7 @@ void Arcball::updateRotation(int _x, int _y)
  * This method must be invoked inside the \code glutDisplayFunc() \endcode
  *
  **/
-void Arcball::applyRotationMatrix()
+void Arcball::ApplyRotationMatrix()
 {  
 	//recover original matrix
 	glMultMatrixf(startMatrix);
@@ -127,7 +125,7 @@ void Arcball::applyRotationMatrix()
 		// Do some rotation according to start and current rotation vectors
 		//cerr << currentRotationVector.transpose() << " " << startRotationVector.transpose() << endl;
 		if ( ( currentRotationVector - startRotationVector).norm() > 1E-6 )	{
-			Vector3d rotationAxis = currentRotationVector.cross(startRotationVector);
+			Eigen::Vector3d rotationAxis = currentRotationVector.cross(startRotationVector);
 			rotationAxis.normalize();
 
 			//FIXED by MY
@@ -152,25 +150,25 @@ void Arcball::applyRotationMatrix()
  * Stop the current rotation and prepare for a new click-then-drag event
  *
  **/
-void Arcball::stopRotation()
+void Arcball::StopRotation()
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	applyRotationMatrix();
+	ApplyRotationMatrix();
 	isRotating = false;
 }
 
 
-Vector3d Arcball::convertXY(int x, int y)
+Eigen::Vector3d Arcball::ConvertXY(int x, int y)
 {
 
 	int d = x*x+y*y;
 	float radiusSquared = ballRadius*ballRadius;
 	if (d > radiusSquared) {
-		return Vector3d((float)x,(float)y, 0 );
+		return Eigen::Vector3d((float)x,(float)y, 0 );
 	}
 	else {  
-		return Vector3d((float)x,(float)y, sqrt(radiusSquared - d));
+		return Eigen::Vector3d((float)x,(float)y, sqrt(radiusSquared - d));
 	}
 }
 
@@ -178,7 +176,7 @@ Vector3d Arcball::convertXY(int x, int y)
  * \ingroup GLVisualization
  * Reset the current transformation to the identity
  **/
-void Arcball::reset()
+void Arcball::Reset()
 {  
 	fov = INITIAL_FOV;
 	// reset matrix

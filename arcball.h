@@ -4,8 +4,6 @@
 
 #include "core.h"
 
-using namespace Eigen;
-
 /*
 * \class Arcball
 * \ingroup GLVisualization
@@ -103,11 +101,11 @@ private:
 
    GLMatrix startMatrix;
    GLMatrix currentMatrix;
-   Vector3d startRotationVector;
-   Vector3d currentRotationVector;
+   Eigen::Vector3d startRotationVector;
+   Eigen::Vector3d currentRotationVector;
 
-   Vector2f startTranslationVector;
-   Vector2f currentTranslationVector;
+   Eigen::Vector2f startTranslationVector;
+   Eigen::Vector2f currentTranslationVector;
 
    bool isZooming;
    bool isRotating;
@@ -117,25 +115,25 @@ private:
    static const float MINIMAL_FOV;
    static const float TRANSLATION_FACTOR;
 
-   Vector3d convertXY(int x, int y);
+   Eigen::Vector3d ConvertXY(int x, int y);
    int width, height;
 public:
    Arcball();
 
-   void setWidthHeight(int w, int h);
-   void startRotation(int x, int y);
-   void updateRotation(int x, int y);
-   void stopRotation();
+   void SetWidthHeight(int w, int h);
+   void StartRotation(int x, int y);
+   void UpdateRotation(int x, int y);
+   void StopRotation();
 
-   void startZooming(int x, int y);
-   void updateZooming(int x, int y);
-   void stopZooming();
+   void StartZooming(int x, int y);
+   void UpdateZooming(int x, int y);
+   void StopZooming();
 
 
-   void applyRotationMatrix();
+   void ApplyRotationMatrix();
 
-   void setRadius(float newRadius);
-   void reset();
+   void SetRadius(float newRadius);
+   void Reset();
 };
 
 

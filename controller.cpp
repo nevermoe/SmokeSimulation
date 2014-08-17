@@ -1,6 +1,5 @@
 #include "core.h"
-
-#define WINDOWTITLE	"FLIP"
+#include "controller.h"
 
 extern Controller* g_controller;
 
@@ -39,7 +38,7 @@ void Controller::RegisterObject(Object* object)
 }
 
 
-Controller::Controller(int argc,char **argv) {
+Controller::Controller(int argc,char **argv, const char *windowName) {
 	winX_ = 1280;
 	winY_ = 960;
 
@@ -59,7 +58,7 @@ Controller::Controller(int argc,char **argv) {
 	}
 
 	// Create the window
-	windowHandle_ = glfwCreateWindow(winX_, winY_, WINDOWTITLE, NULL, NULL);
+	windowHandle_ = glfwCreateWindow(winX_, winY_, windowName, NULL, NULL);
 	if (!windowHandle_) {
 		std::cout << "Create Window failed"  << std::endl;
 		exit(0);

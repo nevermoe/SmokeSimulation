@@ -1,4 +1,5 @@
 #include "core.h"
+#include "camera.h"
 
 Camera::Camera(GLFWwindow* windowHandle) {
 	windowHandle_ = windowHandle;

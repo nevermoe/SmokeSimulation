@@ -7,7 +7,7 @@ template <class T>
 class Allocator{
 public:
 	T*** Alloc3D(int w, int h, int d);
-//	void Free3D(T*** ptr){}
+	void Free3D(T*** ptr);
 };
 
 template <class T>
@@ -24,5 +24,18 @@ T*** Allocator<T>::Alloc3D(int w, int h, int d)
 	}
 	field[w] = NULL;	
 	return field;
+}
+
+template <class T>
+void Allocator<T>::Free3D(T*** ptr)
+{
+	for( int i=0; ptr[i] != NULL; i++ ) {
+		for( int j=0; ptr[i][j] != NULL; j++ ) {
+			delete []ptr[i][j];
+		}
+		delete []ptr[i];
+	}
+
+	delete ptr;
 }
 #endif

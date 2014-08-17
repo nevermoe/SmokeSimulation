@@ -1,4 +1,5 @@
 #include "core.h"
+#include "kernel.h"
 
 GLdouble Kernel::SmoothKernel(GLdouble r2, GLdouble h)
 {
