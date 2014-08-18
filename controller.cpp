@@ -137,7 +137,8 @@ void Controller::_ComputeFPS()
 	titleInfo_.str("");
 	titleInfo_ << windowName_;
 	titleInfo_ << "     FPS: ";
-	titleInfo_ << fps_;
+	titleInfo_ << std::setprecision(4) << fps_;
+	titleInfo_.width(2);
 }
 
 void Controller::Render() {

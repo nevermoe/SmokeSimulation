@@ -1,3 +1,8 @@
 1. Make
 2. Run ./main
-3. Change angle of view with mouse left key, and zoom with right key.
+
+Mouse:
+Change angle of view with mouse left key, and zoom with right key.
+
+Keyboard:
+R to reset the scene.

@@ -16,6 +16,8 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
