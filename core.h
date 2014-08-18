@@ -15,6 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <string>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>

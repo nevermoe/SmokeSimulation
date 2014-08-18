@@ -39,6 +39,13 @@ void Controller::RegisterObject(Object* object)
 
 
 Controller::Controller(int argc,char **argv, const char *windowName) {
+	windowName_ = windowName;
+
+	//for timer
+	elapsedTime_ = 0;
+	numOfFrame_ = 0;
+	fps_ = 0;
+
 	winX_ = 1280;
 	winY_ = 960;
 
@@ -114,13 +121,38 @@ void Controller::Reset() {
 		objects_[i]->Reset();
 }
 
+void Controller::_ComputeFPS()
+{
+	numOfFrame_++;
+	elapsedTime_ += timer_.StopTimer();
+	timer_.StartTimer();
+	if(elapsedTime_ > 1) {
+		fps_ = numOfFrame_ / elapsedTime_;
+		//std::cout << fps_  << " "<< numOfFrame_ << std::endl;
+		elapsedTime_ = 0;
+		numOfFrame_ = 0;
+	}
+	
+	//clear stringstream buffer
+	titleInfo_.str("");
+	titleInfo_ << windowName_;
+	titleInfo_ << "     FPS: ";
+	titleInfo_ << fps_;
+}
+
 void Controller::Render() {
+
+	//compute fps and display 
+	_ComputeFPS();
+	glfwSetWindowTitle(windowHandle_, titleInfo_.str().c_str() );
+
 	//Begin drawing scene
 	camera_->Reset();
 	for(int i = 0 ; i < objectNo_ ; i++) {
 		objects_[i]->SimulateStep();
 		objects_[i]->Show();
 	}
+
 
 	//Finish drawing scene
 	//glFinish();

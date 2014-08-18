@@ -5,6 +5,7 @@
 #include "object.h"
 #include "arcball.h"
 #include "camera.h"
+#include "timer.h"
 
 class Controller {
 public:
@@ -29,6 +30,8 @@ public:
 
 private:
 	// Window management
+	std::string windowName_;
+	std::stringstream titleInfo_;
 	GLFWwindow *windowHandle_;
 	int winX_, winY_;
 
@@ -44,6 +47,12 @@ private:
 	int activeObj_;
 
 	Camera* camera_;
+
+	void _ComputeFPS();
+	Timer timer_;
+	double elapsedTime_;
+	int numOfFrame_;
+	double fps_;
 };
 
 #endif
