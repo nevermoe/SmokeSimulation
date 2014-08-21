@@ -8,6 +8,8 @@ else
 CXXFLAGS += -g
 endif
 
+CXXFLAGS += -DENABLE_WRITE_FILE
+
 LIBS_PATH = -L/usr/local/lib/OpenMesh
 LIBS_PATH += -L/usr/local/lib
 
@@ -30,5 +32,6 @@ $(TARGET): $(SRC:.cpp=.o)
 
 .PHONY: clean
 clean:
-	rm -f *.o
-	rm -f $(TARGET)
+	\rm -f *.o
+	\rm -f $(TARGET)
+	\rm -rf data

@@ -34,6 +34,18 @@ void Flip::_DeleteMemory()
 	delete boundary;
 }
 
+Grid* Flip::GetGrid()
+{
+	return &grid_;
+}
+
+void Flip::_WriteVelocity()
+{
+	std::stringstream fileName;
+	fileName << "vel" << step_;
+	velFileOp_->WriteFlipVel(fileName.str(), this);
+}
+
 void Flip::Reset()
 {
 	Object::Reset();
@@ -253,6 +265,7 @@ void Flip::Init()
 {
 	step_ = 0;
 	simualateAreaX_ = simualateAreaY_ = simualateAreaZ_ = 1.0;
+	velFileOp_ = new FileOperator(VEL_FILE_PATH);
 
 	//allocate memory
 	_InitGrid();
@@ -832,6 +845,11 @@ void Flip::SimulateStep()
 {
 	//timestep++;
 	step_++;
+
+	//write velocity of grid
+#ifdef ENABLE_WRITE_FILE
+	_WriteVelocity();
+#endif
 
 	//add externaal force, e.g. gravity
 	AddExtForce();

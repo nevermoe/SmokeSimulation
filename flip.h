@@ -7,20 +7,26 @@
 #include "simple_vector.h"
 #include "kernel.h"
 #include "allocator.h"
+#include "file_operator.h"
+
+class FileOperator;
+
 
 typedef Eigen::Triplet<GLdouble> DoubleTriplet; 
 typedef Eigen::SparseMatrix<GLdouble> DoubleSpaMat;
 #define	N               32
 #define MAX_STEP        600
 
+#define VEL_FILE_PATH	"data/vel/"
+
 #define ALPHA           1.0
 #define DT              1e-2
-#define DENSITY         0.5
+#define DENSITY         0.5	//FIXME
 #define RHO				1.0
 #define	GRAVITY         9.8
 
-#define	WALL_THICKNESS  (1.0/N)
-#define usolid			0
+#define	WALL_THICKNESS  (1.0/N)	//FIXME
+#define usolid			0		//FIXME
 #define KERNEL_SHARP	1.4
 
 #define SOLID			0
@@ -90,6 +96,7 @@ public:
 	Flip();
 	virtual ~Flip();
 	void Init();
+	Grid* GetGrid();
 	void ComputeDensity();
 	void EnforceBoundary();
 	void Project();
@@ -116,13 +123,15 @@ private:
 	void _InitBoundary();
 	void _InitDensity();
 	void _DeleteMemory();
+	void _WriteVelocity();
 
 	ParticleList _GetNeighborParticles(int si, int sj, int sk, int w, int h, int d);
 
-
 	int step_;
-	ParticleList particles_;
+
 	GLdouble maxDensity_; //max density of particles
+
+	ParticleList particles_;
 	Grid grid_;
 	Grid savedGrid_;
 	
@@ -132,6 +141,7 @@ private:
 
 	GridObject *boundary;
 
+	FileOperator *velFileOp_;
 };
 
 #endif
