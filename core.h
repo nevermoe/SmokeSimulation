@@ -19,6 +19,9 @@
 #include <sstream>
 #include <iomanip>
 
+
+#include <glm/glm.hpp>
+
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <Eigen/Core>

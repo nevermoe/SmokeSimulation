@@ -31,14 +31,15 @@ static void mousemotion(GLFWwindow *window, double x, double y)
 
 void Controller::RegisterObject(Object* object)
 {
-	object->SetParentWindow(windowHandle_);
+	object->RegisterParentWindow(windowHandle_);
 	object->Reset();
 	objects_[objectNo_++] = object;
 	activeObj_++;
 }
 
 
-Controller::Controller(int argc,char **argv, const char *windowName) {
+Controller::Controller(int argc,char **argv, const char *windowName) 
+{
 	windowName_ = windowName;
 
 	//for timer
@@ -60,15 +61,15 @@ Controller::Controller(int argc,char **argv, const char *windowName) {
 
 	// Initialize components
 	if (!glfwInit()) {
-		std::cout << "glfwInit() failed!" << std::endl;
-		exit(0);
+		std::cerr << "glfwInit() failed!" << std::endl;
+		exit(-1);
 	}
 
 	// Create the window
 	windowHandle_ = glfwCreateWindow(winX_, winY_, windowName, NULL, NULL);
 	if (!windowHandle_) {
-		std::cout << "Create Window failed"  << std::endl;
-		exit(0);
+		std::cerr << "Create Window failed"  << std::endl;
+		exit(-1);
 	}
 	glfwMakeContextCurrent(windowHandle_);
 	glfwSetWindowPos(windowHandle_, 0, 0);
@@ -82,6 +83,11 @@ Controller::Controller(int argc,char **argv, const char *windowName) {
 	glfwSetCursorPosCallback(windowHandle_, mousemotion);
 	glfwSetKeyCallback(windowHandle_, keyboard);
 	glfwSetWindowSizeCallback(windowHandle_, resize);
+
+	if(glewInit() != GLEW_OK) {
+		std::cerr << "glewInit() failed!" << std::endl;
+		exit(-1);
+	}
 
 	InitCamera();
 }
@@ -146,6 +152,7 @@ void Controller::Render() {
 	//compute fps and display 
 	_ComputeFPS();
 	glfwSetWindowTitle(windowHandle_, titleInfo_.str().c_str() );
+
 
 	//Begin drawing scene
 	camera_->Reset();

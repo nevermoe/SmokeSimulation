@@ -14,6 +14,7 @@ public:
 
 	void BeginLoop();
 	void RegisterObject(Object* object);
+
 	void Reset();
 	void Render();
 	void InitCamera();

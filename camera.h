@@ -9,7 +9,8 @@ public:
 
 	void Reset();
 	void SetLight();
-	void SetParentWindow(GLFWwindow* windowHandle);
+	void RegisterParentWindow(GLFWwindow* windowHandle);
+
 	
 	// Access functions
 	void SetAspect(GLfloat aspect);
@@ -22,6 +23,7 @@ private:
 	GLfloat farClip_;	// Far clipping plane distance
 	int winX_;
 	int winY_;
+
 
 	GLFWwindow* windowHandle_;
 };

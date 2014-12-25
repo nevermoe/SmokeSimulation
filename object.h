@@ -11,6 +11,14 @@ public:
 	Object();
 	~Object();
 
+	void RegisterShader(const char* vertexProgName, GLenum shaderType);
+	int LoadShaderFile(const char* fileName, GLuint shader);
+	void RebindShader(GLuint hVertexShader, GLuint hfragShader);
+	void CreateShaderProgram();
+	void EnableShader();
+
+	void rcSetUinforms();
+
 
 	void ComputeNormal(GLfloat v[3][3], GLfloat normal[]);
 
@@ -28,7 +36,15 @@ public:
 	virtual void Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods) {}
 	virtual void Resize(GLFWwindow *window, int x, int y);
 
-	void SetParentWindow(GLFWwindow* windowHandle);
+	void RegisterParentWindow(GLFWwindow* windowHandle);
+
+	//for rendering
+	GLuint initTFF1DTex(const char* filename);
+	GLuint initFace2DTex(GLuint bfTexWidth, GLuint bfTexHeight);
+	GLuint initVol3DTex(const char* filename, GLuint w, GLuint h, GLuint d);
+	void checkFramebufferStatus();
+	void initFrameBuffer(GLuint texObj, GLuint texWidth, GLuint texHeight);
+	void render(GLenum cullFace);
 
 protected:
 	std::fstream file_;
@@ -43,13 +59,21 @@ protected:
 	Arcball arcball_;
 
 	GLFWwindow* windowHandle_;
+	int winX_, winY_;
 
-#define SMOOTH_SHADING 0
-#define FLAT_SHADING 1
-#define CREASE_SHADING 2
+	GLuint shaderProg_;	 //shader
+	GLuint _hShaders[10]; //support upto 10 shaders;
+	int shaderNum;			//current number of shaders
 
-#define GAUSSIAN_CURVATURE 1
-#define MEAN_CURVATURE 2
+	//for rendering
+	float g_stepSize;
+	GLuint g_vao;
+	GLuint g_frameBuffer;
+	// transfer function
+	GLuint g_tffTexObj;
+	GLuint g_bfTexObj;
+	GLuint g_volTexObj;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////

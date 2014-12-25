@@ -1,14 +1,14 @@
 CC = g++
 TARGET = main
 
-RELEASE := 1
+RELEASE := 0
 ifeq ($(RELEASE),1)
 CXXFLAGS += -O3 
 else
 CXXFLAGS += -g
 endif
 
-CXXFLAGS += -DENABLE_WRITE_FILE
+#CXXFLAGS += -DENABLE_WRITE_FILE
 
 LIBS_PATH = -L/usr/local/lib/OpenMesh
 LIBS_PATH += -L/usr/local/lib
@@ -24,14 +24,13 @@ all:
 
 %.o : %.cpp
 	@echo "Compiling $< ..."
-	$(CC) $(LIBS_PATH) $(LIBS) $(CXXFLAGS) -o $@ -c $<
+	@$(CC) $(LIBS_PATH) $(LIBS) $(CXXFLAGS) -o $@ -c $<
 
 $(TARGET): $(SRC:.cpp=.o)
 	@echo "Linking $@..."
-	$(CC) -o $@ $(SRC:.cpp=.o) $(LIBS_PATH) $(LIBS) 
+	@$(CC) -o $@ $(SRC:.cpp=.o) $(LIBS_PATH) $(LIBS) 
 
 .PHONY: clean
 clean:
 	\rm -f *.o
 	\rm -f $(TARGET)
-	\rm -rf data
