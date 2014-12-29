@@ -1,7 +1,7 @@
 CC = g++
 TARGET = main
 
-RELEASE := 0
+RELEASE := 1
 ifeq ($(RELEASE),1)
 CXXFLAGS += -O3 
 else

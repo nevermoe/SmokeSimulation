@@ -1,23 +1,21 @@
 #include "core.h"
 #include "controller.h"
-#include "smoke3D.h"
-#include "renderer.h"
+#include "fluid.h"
 
 #define WINDOW_NAME		 "Smoke3D"
 
-#define VERTEX_PROG_NAME1   "backface.vert"
-#define FRAGMENT_PROG_NAME1 "backface.frag"
-#define VERTEX_PROG_NAME2   "raycasting.vert"
-#define FRAGMENT_PROG_NAME2 "raycasting.frag"
+//#define VERTEX_PROG_NAME1   "backface.vert"
+//#define FRAGMENT_PROG_NAME1 "backface.frag"
+//#define VERTEX_PROG_NAME2   "raycasting.vert"
+//#define FRAGMENT_PROG_NAME2 "raycasting.frag"
 
 Controller* g_controller = NULL;
 
 int main(int argc, char **argv) {
-	Object* object = new Renderer;
-	//Object* object = new Smoke3D;
 	::g_controller = new Controller(argc, argv, WINDOW_NAME);
+	Object* object = new Fluid;
 
-#if 1
+#if 0
 	//enable shader
 	object->RegisterShader(VERTEX_PROG_NAME1, GL_VERTEX_SHADER);
 	object->RegisterShader(FRAGMENT_PROG_NAME1, GL_FRAGMENT_SHADER);
@@ -26,6 +24,7 @@ int main(int argc, char **argv) {
 	object->EnableShader();
 #endif
 
+	::g_controller->InitCamera();
 	::g_controller->RegisterObject(object);
 	::g_controller->BeginLoop();
 	return 0;

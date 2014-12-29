@@ -2,9 +2,12 @@
 #include "camera.h"
 
 Camera::Camera(GLFWwindow* windowHandle) {
+#ifdef DEBUG_LEVEL
+	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
+#endif
 	windowHandle_ = windowHandle;
 
-	SetLight();
+	//SetLight();
 	Reset();
 }
 
@@ -50,13 +53,18 @@ void Camera::RegisterParentWindow(GLFWwindow* windowHandle)
 
 void Camera::Reset()
 {
+
 	glfwGetWindowSize(windowHandle_, &winX_, &winY_);
 	FOV_ = 60.0f;
 	aspect_ = (GLfloat)winX_ / winY_;
 	nearClip_ = 0.1f;
 	farClip_ = 100.0f;
 
+#if 1
 	glEnable(GL_DEPTH_TEST);
+#else
+	glDisable(GL_DEPTH_TEST);
+#endif
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -64,6 +72,7 @@ void Camera::Reset()
 	gluPerspective(FOV_, aspect_, nearClip_, farClip_);
 
 	glViewport(0, 0, winX_, winY_);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 }

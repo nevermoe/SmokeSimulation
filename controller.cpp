@@ -89,7 +89,7 @@ Controller::Controller(int argc,char **argv, const char *windowName)
 		exit(-1);
 	}
 
-	InitCamera();
+	//InitCamera();
 }
 
 void Controller::InitCamera()
@@ -121,6 +121,9 @@ Controller::~Controller() {
 }
 
 void Controller::Reset() {
+#ifdef DEBUG_LEVEL
+	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
+#endif
 	camera_->Reset();
 
 	for(int i = 0 ; i < objectNo_ ; i++)
@@ -168,7 +171,7 @@ void Controller::Render() {
 
 int Controller::GetActiveObject(int mx, int my)
 {
-	//do some judgement;
+	//FIXME: do some judgement;
 	return activeObj_;
 }
 

@@ -3,6 +3,9 @@
 
 Object::Object() 
 {
+#ifdef DEBUG_LEVEL
+	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
+#endif
 	//Reset();
 	shaderProg_ = 0;
 	memset(_hShaders, 0, sizeof(_hShaders) );
@@ -249,13 +252,17 @@ void Object::ComputeNormal(GLfloat v[3][3], GLfloat normal[])
 }
 
 void Object::Reset() {
+#ifdef DEBUG_LEVEL
+	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
+#endif
 	int width, height;
 	glfwGetWindowSize(windowHandle_, &width, &height);
 	winX_ = width;
 	winY_ = height;
 	arcball_.SetWidthHeight(width, height);
 
-	depth_ = 1.8;
+#if 1
+	depth_ = 3.8;
 	rotX_ = 10;
 	rotY_ = -20;
 
@@ -266,6 +273,7 @@ void Object::Reset() {
 	glTranslatef(0, 0, -depth_);
 	glRotatef(rotX_, 1, 0, 0);
 	glRotatef(rotY_, 0, 1, 0);
+#endif
 }
 
 bool Object::LoadFile(char* fileName)

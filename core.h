@@ -3,6 +3,7 @@
 
 #define PI 3.14159
 #define INF 99999999
+#define DEBUG_LEVEL
 
 #include <cmath>
 #include <cstdlib>
@@ -14,6 +15,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <string>
 #include <sstream>
