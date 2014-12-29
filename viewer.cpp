@@ -84,6 +84,13 @@ void Viewer::draw(void)
 {
 	GLdouble m[4][4], mt[4][4];
 	glGetDoublev(GL_MODELVIEW_MATRIX, &m[0][0]);
+
+#if 0
+	std::cout << "row " << std::endl;
+	std::cout << m[3][0] << " " << m[3][1] << " " << m[3][2] << " " << m[3][3] << std::endl;
+	std::cout << "col " << std::endl;
+	std::cout << m[0][3] << " " << m[1][3] << " " << m[2][3] << " " << m[3][3] << std::endl;
+#endif
 	
 
 	glDisable(GL_DEPTH_TEST);	//Important in this rendering
@@ -175,7 +182,11 @@ void Viewer::draw_slices(GLdouble m[][4], bool frame)
 	int i;
 
 	//printf("draw_slices\n");
+#if 1
 	Vec3 viewdir(m[0][2], m[1][2], m[2][2]);
+#else
+	Vec3 viewdir(m[2][0], m[2][1], m[2][2]);
+#endif
 	viewdir.Normalize();
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {

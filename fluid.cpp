@@ -8,6 +8,10 @@
 Fluid::Fluid()
 {
 	int i;
+	diffusion = 0.00001f;
+	viscosity = 0.000000f;
+	buoyancy  = 4.0f;
+	vc_eps    = 5.0f;
 
 	for (i=0; i<10; i++)
 		clear_buffer(buffers[i]);

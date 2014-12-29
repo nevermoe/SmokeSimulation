@@ -5,3 +5,4 @@ main
 .ycm_extra_conf.pyc
 tags
 data
+*.swp
