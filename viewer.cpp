@@ -269,7 +269,7 @@ void Viewer::frame_from_sim(Fluid* fluid)
 	cast_light(N+2, fluid->_density, l);
 
 	for (int i=0; i<(N+2)*(N+2)*(N+2); i++) {
-#if 0
+#if 1
 		unsigned char c = l[i];
 #else
 		unsigned char c = 200-fluid->_density[i];
