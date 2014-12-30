@@ -72,7 +72,7 @@ void Fluid::add_buoyancy(float dt)
 	int i, size=(N+2)*(N+2)*(N+2);
 
 	for (i=0; i<size; i++)
-		_velY[i] += -_density[i]*buoyancy*dt;
+		_velY[i] += _density[i]*buoyancy*dt;//FIXME
 }
 
 inline void Fluid::diffuse(int b, float* x0, float* x, float diff, float dt)

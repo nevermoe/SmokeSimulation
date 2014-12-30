@@ -210,7 +210,7 @@ void Viewer::draw_slices(GLdouble m[][4], bool frame)
 			glBegin(GL_POLYGON);
 			for (i=0; i<pt.size(); i++){
 				glColor3f(1.0, 1.0, 1.0);
-				glTexCoord3d((pt[i][0]+1.0)/2.0, (-pt[i][1]+1)/2.0, (pt[i][2]+1.0)/2.0);
+				glTexCoord3d((pt[i][0]+1.0)/2.0, (pt[i][1]+1)/2.0, (pt[i][2]+1.0)/2.0);
 				glVertex3f(pt[i][0], pt[i][1], pt[i][2]);
 			}
 			glEnd();
