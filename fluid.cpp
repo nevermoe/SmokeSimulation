@@ -239,8 +239,7 @@ void Fluid::dens_step()
 #endif
 }
 
-
-void Fluid::SimulateStep()
+void Fluid::_GenerateSmoke()
 {
 	const int centerY = RES/4;
 	const int centerZ = RES/2;
@@ -253,6 +252,12 @@ void Fluid::SimulateStep()
 			}
 		}
 	}
+
+}
+
+void Fluid::SimulateStep()
+{
+	_GenerateSmoke();
 
 	vel_step();
 	dens_step();

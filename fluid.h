@@ -35,8 +35,8 @@ public:
 
 protected:
 	// simulation methods
-		// beware: i changed stam's implementation from a destiation, source ordering
-		// of the parameters to source, destiation
+	// beware: i changed stam's implementation from a destiation, source ordering
+	// of the parameters to source, destiation
 	void add_source(float* src, float *dst);
 	void add_buoyancy();
 	void set_bnd(int b, float* x);
@@ -53,6 +53,7 @@ protected:
 	void clear_buffer(float* x);
 	void clear_sources(void);
 
+	void _GenerateSmoke();
 public:
 	float sd[SIZE], su[SIZE], sv[SIZE], sw[SIZE], sT[SIZE];	// sources for density and velocities
 	float diffusion, viscosity, buoyancy, vc_eps;
