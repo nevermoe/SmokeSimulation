@@ -85,14 +85,6 @@ void Viewer::draw(void)
 	GLdouble m[4][4], mt[4][4];
 	glGetDoublev(GL_MODELVIEW_MATRIX, &m[0][0]);
 
-#if 0
-	std::cout << "row " << std::endl;
-	std::cout << m[3][0] << " " << m[3][1] << " " << m[3][2] << " " << m[3][3] << std::endl;
-	std::cout << "col " << std::endl;
-	std::cout << m[0][3] << " " << m[1][3] << " " << m[2][3] << " " << m[3][3] << std::endl;
-#endif
-	
-
 	glDisable(GL_DEPTH_TEST);	//Important in this rendering
 
 	draw_cube();
@@ -182,11 +174,7 @@ void Viewer::draw_slices(GLdouble m[][4], bool frame)
 	int i;
 
 	//printf("draw_slices\n");
-#if 1
 	Vec3 viewdir(m[0][2], m[1][2], m[2][2]);
-#else
-	Vec3 viewdir(m[2][0], m[2][1], m[2][2]);
-#endif
 	viewdir.Normalize();
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {
@@ -278,20 +266,18 @@ void Viewer::frame_from_sim(Fluid* fluid)
 
 	unsigned char* l = (unsigned char*) malloc((N+2)*(N+2)*(N+2));
 	memset(l,0,(N+2)*(N+2)*(N+2));
-	cast_light(N+2, fluid->d, l);
+	cast_light(N+2, fluid->_density, l);
 
 	for (int i=0; i<(N+2)*(N+2)*(N+2); i++) {
 #if 0
 		unsigned char c = l[i];
-		//printf("%f ",l[i]);
 #else
-		unsigned char c = 200-fluid->d[i];
-		//printf("%d ",c);
+		unsigned char c = 200-fluid->_density[i];
 #endif
 		_texture_data[(i<<2)] = c;
 		_texture_data[(i<<2)+1] = c;
 		_texture_data[(i<<2)+2] = c;
-		_texture_data[(i<<2)+3] = (fluid->d[i]>0.1f) ? 255 : (unsigned char) (fluid->d[i]*2550.0f);
+		_texture_data[(i<<2)+3] = (fluid->_density[i]>0.1f) ? 255 : (unsigned char) (fluid->_density[i]*2550.0f);
 	}
 
 	free(l);
@@ -300,7 +286,6 @@ void Viewer::frame_from_sim(Fluid* fluid)
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, N+2, N+2, N+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, _texture_data);
 }
 
-#define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
 void Viewer::gen_ray_templ(int edgelen)
 {
 	_ray_templ[0][0] = _ray_templ[0][2] = _ray_templ[0][2] = 0;

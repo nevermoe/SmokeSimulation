@@ -7,6 +7,8 @@
 
 class Fluid;	// forward definition
 
+#define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
+
 class Viewer
 {
 private:

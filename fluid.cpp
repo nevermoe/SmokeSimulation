@@ -14,13 +14,13 @@ Fluid::Fluid()
 	vc_eps    = 5.0f;
 
 	for (i=0; i<10; i++)
-		clear_buffer(buffers[i]);
+		clear_buffer(_buffers[i]);
 
 	i=0;
-	d=buffers[i++]; d0=buffers[i++];
-	u=buffers[i++]; u0=buffers[i++];
-	v=buffers[i++]; v0=buffers[i++];
-	w=buffers[i++]; w0=buffers[i++];
+	_density=_buffers[i++]; _densityTmp=_buffers[i++];
+	_velX=_buffers[i++]; _velXTmp=_buffers[i++];
+	_velY=_buffers[i++]; _velYTmp=_buffers[i++];
+	_velZ=_buffers[i++]; _velZTmp=_buffers[i++];
 
 	clear_sources();
 
@@ -72,7 +72,7 @@ void Fluid::add_buoyancy(float dt)
 	int i, size=(N+2)*(N+2)*(N+2);
 
 	for (i=0; i<size; i++)
-		v[i] += -d[i]*buoyancy*dt;
+		_velY[i] += -_density[i]*buoyancy*dt;
 }
 
 inline void Fluid::diffuse(int b, float* x0, float* x, float diff, float dt)
@@ -125,12 +125,13 @@ inline void Fluid::advect(int b, float* x0, float* x, float* uu, float* vv, floa
 			}
 		}
 	}
-	set_bnd(b,d);
+	set_bnd(b,_density);
 }
 
 void Fluid::project(void)
 {
-	float* p = u0;	float* div = v0;	// temporary buffers, use old velocity buffers
+	float* p = _velXTmp;	
+	float* div = _velYTmp;	// temporary buffers, use old velocity buffers
 	int i, j, k, l;
 	float h;
 	h = 1.0f/N;
@@ -138,9 +139,9 @@ void Fluid::project(void)
 		for (j=1; j<=N; j++) {
 			for (i=1; i<=N; i++) {
 				div[_I(i,j,k)] = -h*(
-					u[_I(i+1,j,k)]-u[_I(i-1,j,k)]+
-					v[_I(i,j+1,k)]-v[_I(i,j-1,k)]+
-					w[_I(i,j,k+1)]-w[_I(i,j,k-1)])/3;
+					_velX[_I(i+1,j,k)]-_velX[_I(i-1,j,k)]+
+					_velY[_I(i,j+1,k)]-_velY[_I(i,j-1,k)]+
+					_velZ[_I(i,j,k+1)]-_velZ[_I(i,j,k-1)])/3;
 				p[_I(i,j,k)] = 0;
 			}
 		}
@@ -163,19 +164,19 @@ void Fluid::project(void)
 	for (k=1; k<=N; k++) {
 		for (j=1; j<=N; j++) {
 			for (i=1; i<=N; i++) {
-				u[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])/3/h;
-				v[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])/3/h;
-				w[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])/3/h;
+				_velX[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])/3/h;
+				_velY[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])/3/h;
+				_velZ[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])/3/h;
 			}
 		}
 	}
-	set_bnd(1,u); set_bnd(2,v);
+	set_bnd(1,_velX); set_bnd(2,_velY);
 }
 
 void Fluid::vorticity_confinement(float dt)
 {
 	int i,j,k,ijk;
-	float *curlx = u0, *curly = v0, *curlz=w0, *curl=d0;		// temp buffers
+	float *curlx = _velXTmp, *curly = _velYTmp, *curlz=_velZTmp, *curl=_densityTmp;		// temp buffers
 	float dt0 = dt * vc_eps;
 	float x,y,z;
 
@@ -185,16 +186,16 @@ void Fluid::vorticity_confinement(float dt)
 			for (i=1; i<N; i++) {
 				ijk = _I(i,j,k);
 					// curlx = dw/dy - dv/dz
-				x = curlx[ijk] = (w[_I(i,j+1,k)] - w[_I(i,j-1,k)]) * 0.5f -
-					(v[_I(i,j,k+1)] - v[_I(i,j,k-1)]) * 0.5f;
+				x = curlx[ijk] = (_velZ[_I(i,j+1,k)] - _velZ[_I(i,j-1,k)]) * 0.5f -
+					(_velY[_I(i,j,k+1)] - _velY[_I(i,j,k-1)]) * 0.5f;
 
 					// curly = du/dz - dw/dx
-				y = curly[ijk] = (u[_I(i,j,k+1)] - u[_I(i,j,k-1)]) * 0.5f -
-					(w[_I(i+1,j,k)] - w[_I(i-1,j,k)]) * 0.5f;
+				y = curly[ijk] = (_velX[_I(i,j,k+1)] - _velX[_I(i,j,k-1)]) * 0.5f -
+					(_velZ[_I(i+1,j,k)] - _velZ[_I(i-1,j,k)]) * 0.5f;
 
 					// curlz = dv/dx - du/dy
-				z = curlz[ijk] = (v[_I(i+1,j,k)] - v[_I(i-1,j,k)]) * 0.5f -
-					(u[_I(i,j+1,k)] - u[_I(i,j-1,k)]) * 0.5f;
+				z = curlz[ijk] = (_velY[_I(i+1,j,k)] - _velY[_I(i-1,j,k)]) * 0.5f -
+					(_velX[_I(i,j+1,k)] - _velX[_I(i,j-1,k)]) * 0.5f;
 
 					// curl = |curl|
 				curl[ijk] = sqrtf(x*x+y*y+z*z);
@@ -213,9 +214,9 @@ void Fluid::vorticity_confinement(float dt)
 				Nx *= len1;
 				Ny *= len1;
 				Nz *= len1;
-				u[ijk] += (Ny*curlz[ijk] - Nz*curly[ijk]) * dt0;
-				v[ijk] += (Nz*curlx[ijk] - Nx*curlz[ijk]) * dt0;
-				w[ijk] += (Nx*curly[ijk] - Ny*curlx[ijk]) * dt0;
+				_velX[ijk] += (Ny*curlz[ijk] - Nz*curly[ijk]) * dt0;
+				_velY[ijk] += (Nz*curlx[ijk] - Nx*curlz[ijk]) * dt0;
+				_velZ[ijk] += (Nx*curly[ijk] - Ny*curlx[ijk]) * dt0;
 			}
 		}
 	}
@@ -226,38 +227,52 @@ void Fluid::vorticity_confinement(float dt)
 
 void Fluid::vel_step(float dt)
 {
-	add_source(su, u, dt);
-	add_source(sv, v, dt);
-	add_source(sw, w, dt);
+	add_source(su, _velX, dt);
+	add_source(sv, _velY, dt);
+	add_source(sw, _velZ, dt);
 	add_buoyancy(dt);
 	vorticity_confinement(dt);
 
 #ifdef DIFFUSE
-	SWAPFPTR(u0, u); SWAPFPTR(v0, v); SWAPFPTR(w0, w);
-	diffuse(1, u0, u, viscosity, dt);
-	diffuse(2, v0, v, viscosity, dt);
-	diffuse(3, w0, w, viscosity, dt);
+	std::swap(_velXTmp, _velX); std::swap(_velYTmp, _velY); std::swap(_velZTmp, _velZ);
+	diffuse(1, _velXTmp, _velX, viscosity, dt);
+	diffuse(2, _velYTmp, _velY, viscosity, dt);
+	diffuse(3, _velZTmp, _velZ, viscosity, dt);
 	project();
 #endif
 #ifdef ADVECT
-	SWAPFPTR(u0, u); SWAPFPTR(v0, v); SWAPFPTR(w0, w);
-	advect(1, u0, u, u0, v0, w0, dt);
-	advect(2, v0, v, u0, v0, w0, dt);
-	advect(3, w0, w, u0, v0, w0, dt);
+	std::swap(_velXTmp, _velX); std::swap(_velYTmp, _velY); std::swap(_velZTmp, _velZ);
+	advect(1, _velXTmp, _velX, _velXTmp, _velYTmp, _velZTmp, dt);
+	advect(2, _velYTmp, _velY, _velXTmp, _velYTmp, _velZTmp, dt);
+	advect(3, _velZTmp, _velZ, _velXTmp, _velYTmp, _velZTmp, dt);
 	project();
 #endif
 }
 
 void Fluid::dens_step(float dt)
 {
-	add_source(sd, d, dt);
+	add_source(sd, _density, dt);
 #ifdef DIFFUSE
-	SWAPFPTR(d0, d);
-	diffuse(0, d0, d, diffusion, dt);
+	std::swap(_densityTmp, _density);
+	diffuse(0, _densityTmp, _density, diffusion, dt);
 #endif
 #ifdef ADVECT
-	SWAPFPTR(d0, d);
-	advect(0, d0, d, u, v, w, dt);
+	std::swap(_densityTmp, _density);
+	advect(0, _densityTmp, _density, _velX, _velY, _velZ, dt);
+
+#if 1
+	//decrease density
+	for (int k=1; k<=N; k++) {
+		for (int j=1; j<=N; j++) {
+			for (int i=1; i<=N; i++) {
+				_density[_I(k,j,i)] -= 0.001;
+				if(_density[_I(k,j,i)] < 0)
+					_density[_I(k,j,i)] = 0;
+			}
+		}
+	}
+#endif
+
 #endif
 }
 
@@ -266,15 +281,27 @@ void Fluid::SimulateStep()
 {
 	float dt = 0.1;
 #if 1
-	const int xpos = 60;
-	const int ypos = 50;
+	const int centerY = RES/4;
+	const int centerZ = RES/2;
+	float dens = (rand()%1000)/1000.0f;
+	for (int i = 1 ; i <= N ; i++) {
+		for (int j = 1 ; j <= N ; j++) {
+			if (hypot(i-centerY, j-centerZ) < RES/8) {
+				this->_density[_I(1,i,j)] = dens;
+				this->_velX[_I(1,i,j)] = 1.0f;
+			}
+		}
+	}
+#else
+	const int xpos = 20;
+	const int ypos = 20;
 	for (int i=0; i<8; i++) {
-		float d = (rand()%1000)/1000.0f;
+		float dens = (rand()%1000)/1000.0f;
 		for (int j=0; j<8; j++)
 		{
 			//f = genfunc(i,j,8,8,t,gfparams);
-			this->d[_I(xpos,i+ypos,j+28)] = d;
-			this->u[_I(xpos,i+ypos,j+28)] = -3.0f;
+			this->_density[_I(xpos,i+ypos,j+2)] = dens;
+			this->_velX[_I(xpos,i+ypos,j+2)] = -3.0f;
 		}
 	}
 #endif
@@ -287,8 +314,22 @@ void Fluid::SimulateStep()
 
 void Fluid::Show()
 {
+#if 1
 	_viewer->frame_from_sim(this);
 	_viewer->draw();
+#else
+	glBegin(GL_POINTS);
+	for (int k=1; k<=N; k++) {
+		for (int j=1; j<=N; j++) {
+			for (int i=1; i<=N; i++) {
+				if(!ALMOST_EQUAL(_density[_I(k,j,i)], 0) ) {
+					glVertex3f(((float)k/N-0.5)*2, ((float)j/N-0.5)*2, ((float)i/N-0.5)*2 );
+				}
+			}
+		}
+	}
+	glEnd();
+#endif
 }
 
 

@@ -6,21 +6,26 @@
 #include "object.h"
 #include "viewer.h"
 
-#define N 62				// must be N^2-2
+#if 0
+#define N 30				// must be N^2-2
 #define SIZE ((N+2)*(N+2)*(N+2))
 #define _I(x,y,z) (((z)<<12)+((y)<<6)+x)
-
-#define SWAPFPTR(x,y) {float *t=x;x=y;y=t;}
+#else
+#define RES 30			// box resolution
+#define N ((RES)-2)			// valid simulation area
+#define SIZE ((RES)*(RES)*(RES))
+#define _I(x,y,z) (((z)*(RES)*(RES))+((y)*(RES))+(x))
+#endif
 
 class Fluid: public Object
 {
 protected:
-	float buffers[10][SIZE];
+	float _buffers[10][SIZE];
 public:
-	float *d, *d0;			// density
-	float *u, *u0;			// velocity in x direction
-	float *v, *v0;			// velocity in y direction
-	float *w, *w0;			// velocity in z direction
+	float *_density, *_densityTmp;			// density
+	float *_velX, *_velXTmp;			// velocity in x direction
+	float *_velY, *_velYTmp;			// velocity in y direction
+	float *_velZ, *_velZTmp;			// velocity in z direction
 
 	Viewer* _viewer;
 
