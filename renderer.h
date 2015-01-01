@@ -1,9 +1,10 @@
-/* Author: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
-#ifndef _VIEWER_H
-#define _VIEWER_H
+/* Adapted from: Johannes Schmid, 2006 
+ * https://graphics.ethz.ch/teaching/former/imagesynthesis_06/miniprojects/p3 */
+
+#ifndef _RENDERER_H
+#define _RENDERER_H
 
 #include "core.h"
-#include "vec3.hpp"
 
 class Fluid;	// forward definition
 
@@ -41,7 +42,7 @@ private:
 		// if frame==true, the outline of the slices will be drawn as well
 	void draw_slices(GLdouble m[][4], bool frame);
 		// intersect a plane with the cube, helper function for draw_slices()
-	std::vector<Vec3> intersect_edges(float a, float b, float c, float d);
+	std::vector<Eigen::Vector3f> intersect_edges(float a, float b, float c, float d);
 
 	void gen_ray_templ(int edgelen);
 	void cast_light(int edgelen, float* dens, unsigned char* intensity);

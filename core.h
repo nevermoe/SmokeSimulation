@@ -1,5 +1,5 @@
-#ifndef CORE_H
-#define CORE_H
+#ifndef _CORE_H
+#define _CORE_H
 
 #define PI 3.14159
 #define INF 99999999

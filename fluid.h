@@ -1,6 +1,8 @@
-/* Author: Johannes Schmid, 2006, johnny@grob.org */
-#ifndef __FLUID_H
-#define __FLUID_H
+/* Adapted from: Johannes Schmid, 2006 
+ * https://graphics.ethz.ch/teaching/former/imagesynthesis_06/miniprojects/p3 */
+
+#ifndef _FLUID_H
+#define _FLUID_H
 
 #include "core.h"
 #include "object.h"

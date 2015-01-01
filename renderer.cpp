@@ -1,4 +1,6 @@
-/* Author: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
+/* Adapted from: Johannes Schmid, 2006 
+ * https://graphics.ethz.ch/teaching/former/imagesynthesis_06/miniprojects/p3 */
+
 #include "renderer.h"
 #include "fluid.h"
 
@@ -156,14 +158,15 @@ glEnd();
 class Convexcomp
 {
 	private:
-		const Vec3 &p0, &up;
+		const Eigen::Vector3f &p0, &up;
 	public:
-		Convexcomp(const Vec3& p0, const Vec3& up) : p0(p0), up(up) {}
+		Convexcomp(const Eigen::Vector3f& p0, const Eigen::Vector3f& up) : p0(p0), up(up) {}
 
-		bool operator()(const Vec3& a, const Vec3& b) const
+		bool operator()(const Eigen::Vector3f& a, const Eigen::Vector3f& b) const
 		{
-			Vec3 va = a-p0, vb = b-p0;
-			return dot(up, cross(va, vb)) >= 0;
+			Eigen::Vector3f va = a-p0, vb = b-p0;
+			//return dot(up, cross(va, vb)) >= 0;
+			return up.dot(va.cross(vb)) >= 0;
 		}
 };
 
@@ -172,8 +175,8 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 	int i;
 
 	//printf("draw_slices\n");
-	Vec3 viewdir(m[0][2], m[1][2], m[2][2]);
-	viewdir.Normalize();
+	Eigen::Vector3f viewdir(m[0][2], m[1][2], m[2][2]);
+	viewdir.normalize();
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {
 		float x = cv[i][0] + viewdir[0];
@@ -198,7 +201,7 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 	for (float d = -d0; d < d0; d += dd) {
 		// intersect_edges returns the intersection points of all cube edges with
 		// the given plane that lie within the cube
-		std::vector<Vec3> pt = intersect_edges(viewdir[0], viewdir[1], viewdir[2], d);
+		std::vector<Eigen::Vector3f> pt = intersect_edges(viewdir[0], viewdir[1], viewdir[2], d);
 
 		if (pt.size() > 2) {
 			// sort points to get a convex polygon
@@ -235,12 +238,12 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 	//	printf("Sliced: %d\n", n);
 }
 
-std::vector<Vec3> Renderer::intersect_edges(float a, float b, float c, float d)
+std::vector<Eigen::Vector3f> Renderer::intersect_edges(float a, float b, float c, float d)
 {
 	int i;
 	float t;
-	Vec3 p;
-	std::vector<Vec3> res;
+	Eigen::Vector3f p;
+	std::vector<Eigen::Vector3f> res;
 
 	for (i=0; i<12; i++) {
 		t = -(a*edges[i][0][0] + b*edges[i][0][1] + c*edges[i][0][2] + d)

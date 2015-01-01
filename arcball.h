@@ -1,8 +1,5 @@
-#ifndef ARCBALL_H
-#define ARCBALL_H
-
-
-#include "core.h"
+#ifndef _ARCBALL_H
+#define _ARCBALL_H
 
 /*
 * \class Arcball
@@ -84,6 +81,9 @@ These are the two functions (GLUT) that control the mouse events:
 *
 */
 
+
+
+#include "core.h"
 
 typedef float GLMatrix[16];
 
