@@ -40,15 +40,16 @@ Renderer::Renderer()
 
 	init_GL();
 
-	/*
-	   _light_dir[0] = -1.0f;
-	   _light_dir[1] = 0.50f;
-	   _light_dir[2] = 0.0f;
-	   */
+#if	1
+	_light_dir[0] = -1.0f;
+	_light_dir[1] = -1.0f;
+	_light_dir[2] = -1.0f;
+#else
 	_light_dir[0] = 0.0f;
 	_light_dir[1] = 1.0f;
 	_light_dir[2] = -1.0f;
-	gen_ray_templ(N+2);
+#endif
+	gen_ray_templ(RES);
 }
 
 Renderer::~Renderer()
@@ -143,15 +144,15 @@ void Renderer::draw_cube(void)
 	glVertex3fv(cv[3]); glVertex3fv(cv[7]);
 	glEnd();
 
-	/*
-	   glPointSize(3.0f);
-	   glBegin(GL_POINTS);
-	   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-#define PDIST 2.0f
-glVertex3f(-_light_dir[0]*PDIST,-_light_dir[1]*PDIST,-_light_dir[2]*PDIST);
+	
+	glPointSize(3.0f);
+	glBegin(GL_POINTS);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+#define PDIST 1.2f
+	glVertex3f(-_light_dir[0]*PDIST,-_light_dir[1]*PDIST,-_light_dir[2]*PDIST);
 #undef PDIST
-glEnd();
-*/
+	glEnd();
+
 
 }
 
@@ -174,8 +175,7 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 {
 	int i;
 
-	//printf("draw_slices\n");
-	Eigen::Vector3f viewdir(m[0][2], m[1][2], m[2][2]);
+	Eigen::Vector3f viewdir(-m[0][2], -m[1][2], -m[2][2]);	//FIXME
 	viewdir.normalize();
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {
@@ -234,8 +234,6 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 		}
 		n++;
 	}
-
-	//	printf("Sliced: %d\n", n);
 }
 
 std::vector<Eigen::Vector3f> Renderer::intersect_edges(float a, float b, float c, float d)
@@ -263,13 +261,13 @@ std::vector<Eigen::Vector3f> Renderer::intersect_edges(float a, float b, float c
 void Renderer::FillTexture(Fluid* fluid)
 {
 	if (_texture_data == NULL)
-		_texture_data = (unsigned char*) malloc((N+2)*(N+2)*(N+2)*4);
+		_texture_data = (unsigned char*) malloc(RES*RES*RES*4);
 
-	unsigned char* l = (unsigned char*) malloc((N+2)*(N+2)*(N+2));
-	memset(l,0,(N+2)*(N+2)*(N+2));
-	cast_light(N+2, fluid->_density, l);
+	unsigned char* l = (unsigned char*) malloc(RES*RES*RES);
+	memset(l,0,RES*RES*RES);
+	cast_light(RES, fluid->_density, l);
 
-	for (int i=0; i<(N+2)*(N+2)*(N+2); i++) {
+	for (int i=0; i<RES*RES*RES; i++) {
 #if 1
 		unsigned char c = l[i];
 #else
@@ -284,7 +282,7 @@ void Renderer::FillTexture(Fluid* fluid)
 	free(l);
 
 	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, N+2, N+2, N+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, _texture_data);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, RES, RES, RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, _texture_data);
 }
 
 void Renderer::gen_ray_templ(int edgelen)
@@ -397,6 +395,7 @@ inline void Renderer::light_ray(int x, int y, int z, int n, float decay, float* 
 
 	do {
 		offset = ((zz*n) + yy)*n + xx;
+		//offset = ((xx*n) + yy)*n + zz;
 		if (intensity[offset] > 0)
 			intensity[offset] = (unsigned char) ((intensity[offset] + l)*0.5f);
 		else

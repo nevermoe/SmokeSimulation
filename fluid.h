@@ -12,11 +12,11 @@
 #define RES 40			// box resolution
 #define N ((RES)-2)			// valid simulation area
 #define SIZE ((RES)*(RES)*(RES))
-#define _I(x,y,z) (((z)*(RES)*(RES))+((y)*(RES))+(x))
+#define _I(x,y,z) (((x)*(RES)*(RES))+((y)*(RES))+(z))
 
-#define FOR_ALL_CELL for (int k=1; k<=(N); k++) {\
+#define FOR_ALL_CELL for (int i=1; i<=(N); i++) {\
 	for (int j=1; j<=(N); j++) {\
-		for (int i=1; i<=(N); i++) {
+		for (int k=1; k<=(N); k++) {
 
 #define END_FOR }}}
 
@@ -33,7 +33,7 @@ public:
 	float *_velZ, *_velZTmp;			// velocity in z direction
 	float _dt;
 
-	Renderer * _renderer;
+	Renderer * _renderer;				//register a renderer
 
 protected:
 	// simulation methods
@@ -41,9 +41,9 @@ protected:
 	// of the parameters to source, destiation
 	void AddSource(float* src, float *dst);
 	void AddBuoyancy();
-	void EnforceBoundary(int b, float* x);
-	void Diffuse(int b, float* x0, float* x, float diff);
-	void Advect(int b, float* x0, float* x, float* uu, float* vv, float* ww);
+	void EnforceBoundary(int b, float* quantity);
+	void Diffuse(int b, float* velTmp, float* vel, float diff);
+	void Advect(int b, float* quantityTmp, float* quantity, float* velX, float* velY, float* velZ);
 	void Project(void);
 	void VorticityConfinement();
 
@@ -51,7 +51,7 @@ protected:
 	void DensityStep();
 
 	// utility methods
-	void ClearBuffer(float* x);
+	void ClearBuffer(float* buf);
 	void ClearSources(void);
 
 	void _GenerateSmoke();
