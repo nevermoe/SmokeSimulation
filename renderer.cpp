@@ -40,7 +40,7 @@ Renderer::Renderer()
 
 	init_GL();
 
-#if	1
+#if	0
 	_light_dir[0] = -1.0f;
 	_light_dir[1] = -1.0f;
 	_light_dir[2] = -1.0f;
@@ -145,7 +145,7 @@ void Renderer::draw_cube(void)
 	glEnd();
 
 	
-	glPointSize(3.0f);
+	glPointSize(13.0f);
 	glBegin(GL_POINTS);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 #define PDIST 1.2f
@@ -211,7 +211,7 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 			glBegin(GL_POLYGON);
 			for (i=0; i<pt.size(); i++){
 				glColor3f(1.0, 1.0, 1.0);
-				glTexCoord3d((pt[i][0]+1.0)/2.0, (pt[i][1]+1)/2.0, (pt[i][2]+1.0)/2.0);
+				glTexCoord3d((pt[i][2]+1.0)/2.0, (pt[i][1]+1)/2.0, (pt[i][0]+1.0)/2.0);//FIXME
 				glVertex3f(pt[i][0], pt[i][1], pt[i][2]);
 			}
 			glEnd();
