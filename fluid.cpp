@@ -10,7 +10,7 @@ Fluid::Fluid()
 	_dt = DT;
 
 	for (int i=0; i<10; i++)
-		clear_buffer(_buffers[i]);
+		ClearBuffer(_buffers[i]);
 
 	int i=0;
 	_density=_buffers[i++]; _densityTmp=_buffers[i++];
@@ -18,9 +18,9 @@ Fluid::Fluid()
 	_velY=_buffers[i++]; _velYTmp=_buffers[i++];
 	_velZ=_buffers[i++]; _velZTmp=_buffers[i++];
 
-	clear_sources();
+	ClearSources();
 
-	_viewer = new Viewer();
+	_renderer = new Renderer();
 }
 
 Fluid::~Fluid()
@@ -29,7 +29,7 @@ Fluid::~Fluid()
 
 #define BOUNDARY
 //#undef BOUNDARY
-void Fluid::set_bnd(int b, float* x)
+void Fluid::EnforceBoundary(int b, float* x)
 {
 #ifdef BOUNDARY
 	int i, j;
@@ -56,7 +56,7 @@ void Fluid::set_bnd(int b, float* x)
 #endif
 }
 
-void Fluid::add_source(float* src, float *dst)
+void Fluid::AddSource(float* src, float *dst)
 {
 	int i, size=(N+2)*(N+2)*(N+2);
 
@@ -64,7 +64,7 @@ void Fluid::add_source(float* src, float *dst)
 		dst[i] += src[i]*_dt;
 }
 
-void Fluid::add_buoyancy()
+void Fluid::AddBuoyancy()
 {
 	int i, size=(N+2)*(N+2)*(N+2);
 
@@ -72,7 +72,7 @@ void Fluid::add_buoyancy()
 		_velY[i] += _density[i]*buoyancy*_dt;//FIXME
 }
 
-inline void Fluid::diffuse(int b, float* x0, float* x, float diff)
+inline void Fluid::Diffuse(int b, float* x0, float* x, float diff)
 {
 	int l;
 	float a=_dt*diff*N*N*N;
@@ -84,11 +84,11 @@ inline void Fluid::diffuse(int b, float* x0, float* x, float diff)
 						x[_I(i,j-1,k)]+x[_I(i,j+1,k)]+
 						x[_I(i,j,k-1)]+x[_I(i,j,k+1)]))/(1+6*a);
 		} END_FOR
-		set_bnd(b,x);
+		EnforceBoundary(b,x);
 	}
 }
 
-inline void Fluid::advect(int b, float* x0, float* x, float* uu, float* vv, float* ww)
+inline void Fluid::Advect(int b, float* x0, float* x, float* uu, float* vv, float* ww)
 {
 	int i0, j0, k0, i1, j1, k1;
 	float sx0, sx1, sy0, sy1, sz0, sz1, v0, v1;
@@ -108,10 +108,10 @@ inline void Fluid::advect(int b, float* x0, float* x, float* uu, float* vv, floa
 		v1 = sx0*(sy0*x0[_I(i0,j0,k1)]+sy1*x0[_I(i0,j1,k1)])+sx1*(sy0*x0[_I(i1,j0,k1)]+sy1*x0[_I(i1,j1,k1)]);
 		x[_I(i,j,k)] = sz0*v0 + sz1*v1;
 	} END_FOR
-	set_bnd(b,_density);
+	EnforceBoundary(b,_density);
 }
 
-void Fluid::project(void)
+void Fluid::Project(void)
 {
 	float* p = _velXTmp;	
 	float* div = _velYTmp;	// temporary buffers, use old velocity buffers
@@ -125,7 +125,7 @@ void Fluid::project(void)
 					_velZ[_I(i,j,k+1)]-_velZ[_I(i,j,k-1)])/3;
 				p[_I(i,j,k)] = 0;
 	} END_FOR
-	set_bnd(0,div); set_bnd(0,p);
+	EnforceBoundary(0,div); EnforceBoundary(0,p);
 	for (l=0; l<20; l++) 
 	{
 		FOR_ALL_CELL {
@@ -134,17 +134,17 @@ void Fluid::project(void)
 						p[_I(i,j-1,k)]+p[_I(i,j+1,k)]+
 						p[_I(i,j,k-1)]+p[_I(i,j,k+1)])/6;
 		} END_FOR
-		set_bnd(0,p);
+		EnforceBoundary(0,p);
 	}
 	FOR_ALL_CELL {
 				_velX[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])/3/h;
 				_velY[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])/3/h;
 				_velZ[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])/3/h;
 	} END_FOR
-	set_bnd(1,_velX); set_bnd(2,_velY);
+	EnforceBoundary(1,_velX); EnforceBoundary(2,_velY);
 }
 
-void Fluid::vorticity_confinement()
+void Fluid::VorticityConfinement()
 {
 	int ijk;
 	float *curlx = _velXTmp, *curly = _velYTmp, *curlz=_velZTmp, *curl=_densityTmp;		// temp buffers
@@ -188,40 +188,44 @@ void Fluid::vorticity_confinement()
 #define DIFFUSE
 #define ADVECT
 
-void Fluid::vel_step()
+void Fluid::VelocityStep()
 {
-	add_source(su, _velX);
-	add_source(sv, _velY);
-	add_source(sw, _velZ);
-	add_buoyancy();
-	vorticity_confinement();
+#if 0
+	AddSource(su, _velX);
+	AddSource(sv, _velY);
+	AddSource(sw, _velZ);
+#endif
+	AddBuoyancy();
+	VorticityConfinement();
 
 #ifdef DIFFUSE
 	std::swap(_velXTmp, _velX); std::swap(_velYTmp, _velY); std::swap(_velZTmp, _velZ);
-	diffuse(1, _velXTmp, _velX, viscosity);
-	diffuse(2, _velYTmp, _velY, viscosity);
-	diffuse(3, _velZTmp, _velZ, viscosity);
-	project();
+	Diffuse(1, _velXTmp, _velX, viscosity);
+	Diffuse(2, _velYTmp, _velY, viscosity);
+	Diffuse(3, _velZTmp, _velZ, viscosity);
+	Project();
 #endif
 #ifdef ADVECT
 	std::swap(_velXTmp, _velX); std::swap(_velYTmp, _velY); std::swap(_velZTmp, _velZ);
-	advect(1, _velXTmp, _velX, _velXTmp, _velYTmp, _velZTmp);
-	advect(2, _velYTmp, _velY, _velXTmp, _velYTmp, _velZTmp);
-	advect(3, _velZTmp, _velZ, _velXTmp, _velYTmp, _velZTmp);
-	project();
+	Advect(1, _velXTmp, _velX, _velXTmp, _velYTmp, _velZTmp);
+	Advect(2, _velYTmp, _velY, _velXTmp, _velYTmp, _velZTmp);
+	Advect(3, _velZTmp, _velZ, _velXTmp, _velYTmp, _velZTmp);
+	Project();
 #endif
 }
 
-void Fluid::dens_step()
+void Fluid::DensityStep()
 {
-	add_source(sd, _density);
+#if 0
+	AddSource(sd, _density);
+#endif
 #ifdef DIFFUSE
 	std::swap(_densityTmp, _density);
-	diffuse(0, _densityTmp, _density, diffusion);
+	Diffuse(0, _densityTmp, _density, diffusion);
 #endif
 #ifdef ADVECT
 	std::swap(_densityTmp, _density);
-	advect(0, _densityTmp, _density, _velX, _velY, _velZ);
+	Advect(0, _densityTmp, _density, _velX, _velY, _velZ);
 
 #if 1
 	//decrease density
@@ -259,8 +263,8 @@ void Fluid::SimulateStep()
 {
 	_GenerateSmoke();
 
-	vel_step();
-	dens_step();
+	VelocityStep();
+	DensityStep();
 
 }
 
@@ -268,8 +272,8 @@ void Fluid::SimulateStep()
 void Fluid::Show()
 {
 #if 1
-	_viewer->frame_from_sim(this);
-	_viewer->draw();
+	_renderer->FillTexture(this);
+	_renderer->Render();
 #else
 	glBegin(GL_POINTS);
 	for (int k=1; k<=N; k++) {
@@ -286,14 +290,14 @@ void Fluid::Show()
 }
 
 
-void Fluid::clear_buffer(float* x)
+void Fluid::ClearBuffer(float* x)
 {
 	for (int i=0; i<SIZE; i++) {
 		x[i] = 0.0f;
 	}
 }
 
-void Fluid::clear_sources(void)
+void Fluid::ClearSources(void)
 {
 	for (int i=0; i<SIZE; i++) {
 		sd[i] = su[i] = sv[i] = 0.0f;

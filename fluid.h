@@ -4,7 +4,7 @@
 
 #include "core.h"
 #include "object.h"
-#include "viewer.h"
+#include "renderer.h"
 
 #define DT  0.1
 #define RES 40			// box resolution
@@ -31,27 +31,26 @@ public:
 	float *_velZ, *_velZTmp;			// velocity in z direction
 	float _dt;
 
-	Viewer* _viewer;
+	Renderer * _renderer;
 
 protected:
 	// simulation methods
 	// beware: i changed stam's implementation from a destiation, source ordering
 	// of the parameters to source, destiation
-	void add_source(float* src, float *dst);
-	void add_buoyancy();
-	void set_bnd(int b, float* x);
-	void diffuse(int b, float* x0, float* x, float diff);
-	void advect(int b, float* x0, float* x, float* uu, float* vv, float* ww);
-	void project(void);
-	void vorticity_confinement();
+	void AddSource(float* src, float *dst);
+	void AddBuoyancy();
+	void EnforceBoundary(int b, float* x);
+	void Diffuse(int b, float* x0, float* x, float diff);
+	void Advect(int b, float* x0, float* x, float* uu, float* vv, float* ww);
+	void Project(void);
+	void VorticityConfinement();
 
-	void vel_step();
-	void dens_step();
-	void dens_temp_step();
+	void VelocityStep();
+	void DensityStep();
 
 	// utility methods
-	void clear_buffer(float* x);
-	void clear_sources(void);
+	void ClearBuffer(float* x);
+	void ClearSources(void);
 
 	void _GenerateSmoke();
 public:

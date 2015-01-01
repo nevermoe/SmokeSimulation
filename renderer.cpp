@@ -1,8 +1,6 @@
 /* Author: Johannes Schmid and Ingemar Rask, 2006, johnny@grob.org */
-#include "viewer.h"
+#include "renderer.h"
 #include "fluid.h"
-
-bool canRunFragmentProgram(const char* programString);	// from FragmentUtils.cpp
 
 // cube vertices
 GLfloat cv[][3] = {
@@ -28,7 +26,7 @@ float edges[12][2][3] = {
 	{{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
 };
 
-Viewer::Viewer()
+Renderer::Renderer()
 {
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 
@@ -51,7 +49,7 @@ Viewer::Viewer()
 	gen_ray_templ(N+2);
 }
 
-Viewer::~Viewer()
+Renderer::~Renderer()
 {
 	if (_texture_data)
 		free(_texture_data);
@@ -59,7 +57,7 @@ Viewer::~Viewer()
 		fclose(_fp);
 }
 
-void Viewer::init_GL(void)
+void Renderer::init_GL(void)
 {
 	glEnable(GL_TEXTURE_3D);
 	glDisable(GL_DEPTH_TEST);
@@ -80,7 +78,7 @@ void Viewer::init_GL(void)
 
 }
 
-void Viewer::draw(void)
+void Renderer::Render(void)
 {
 	GLdouble m[4][4], mt[4][4];
 	glGetDoublev(GL_MODELVIEW_MATRIX, &m[0][0]);
@@ -94,7 +92,7 @@ void Viewer::draw(void)
 }
 
 
-void Viewer::draw_cube(void)
+void Renderer::draw_cube(void)
 {
 	glDisable(GL_TEXTURE_3D);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -169,7 +167,7 @@ class Convexcomp
 		}
 };
 
-void Viewer::draw_slices(GLdouble m[][4], bool frame)
+void Renderer::draw_slices(GLdouble m[][4], bool frame)
 {
 	int i;
 
@@ -237,7 +235,7 @@ void Viewer::draw_slices(GLdouble m[][4], bool frame)
 	//	printf("Sliced: %d\n", n);
 }
 
-std::vector<Vec3> Viewer::intersect_edges(float a, float b, float c, float d)
+std::vector<Vec3> Renderer::intersect_edges(float a, float b, float c, float d)
 {
 	int i;
 	float t;
@@ -259,7 +257,7 @@ std::vector<Vec3> Viewer::intersect_edges(float a, float b, float c, float d)
 }
 
 
-void Viewer::frame_from_sim(Fluid* fluid)
+void Renderer::FillTexture(Fluid* fluid)
 {
 	if (_texture_data == NULL)
 		_texture_data = (unsigned char*) malloc((N+2)*(N+2)*(N+2)*4);
@@ -286,7 +284,7 @@ void Viewer::frame_from_sim(Fluid* fluid)
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, N+2, N+2, N+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, _texture_data);
 }
 
-void Viewer::gen_ray_templ(int edgelen)
+void Renderer::gen_ray_templ(int edgelen)
 {
 	_ray_templ[0][0] = _ray_templ[0][2] = _ray_templ[0][2] = 0;
 	float fx = 0.0f, fy = 0.0f, fz = 0.0f;
@@ -363,7 +361,7 @@ void Viewer::gen_ray_templ(int edgelen)
 }
 
 #define DECAY 0.06f
-void Viewer::cast_light(int n /*edgelen*/, float* dens, unsigned char* intensity)
+void Renderer::cast_light(int n /*edgelen*/, float* dens, unsigned char* intensity)
 {
 
 	int i,j;
@@ -386,7 +384,7 @@ void Viewer::cast_light(int n /*edgelen*/, float* dens, unsigned char* intensity
 
 
 #define AMBIENT 100
-inline void Viewer::light_ray(int x, int y, int z, int n, float decay, float* dens, unsigned char* intensity)
+inline void Renderer::light_ray(int x, int y, int z, int n, float decay, float* dens, unsigned char* intensity)
 {
 	int xx = x, yy = y, zz = z, i = 0;
 	int offset;

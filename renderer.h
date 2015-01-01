@@ -9,7 +9,7 @@ class Fluid;	// forward definition
 
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
 
-class Viewer
+class Renderer
 {
 private:
 	int _sx, _sy;			// screen width and height
@@ -51,14 +51,14 @@ private:
 	void init_GL(void);
 
 public:
-	Viewer();
-	~Viewer();
+	Renderer();
+	~Renderer();
 
 	bool _draw_slice_outline;
 	char* _dispstring;
 
-	void frame_from_sim(Fluid* fluid);		// generate data from simulation
-	void draw(void);						// draw the volume
+	void FillTexture(Fluid* fluid);		// generate data from simulation
+	void Render(void);						// draw the volume
 };
 
 
