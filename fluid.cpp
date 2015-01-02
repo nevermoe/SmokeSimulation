@@ -234,15 +234,11 @@ void Fluid::DensityStep()
 
 #if 1
 	//decrease density
-	for (int k=1; k<=N; k++) {
-		for (int j=1; j<=N; j++) {
-			for (int i=1; i<=N; i++) {
-				_density[_I(k,j,i)] -= 0.001;
-				if(_density[_I(k,j,i)] < 0)
-					_density[_I(k,j,i)] = 0;
-			}
-		}
-	}
+	FOR_ALL_CELL {
+		_density[_I(k,j,i)] -= 0.001;
+		if(_density[_I(k,j,i)] < 0)
+			_density[_I(k,j,i)] = 0;
+	} END_FOR
 #endif
 
 #endif
@@ -251,7 +247,7 @@ void Fluid::DensityStep()
 void Fluid::_GenerateSmoke()
 {
 	const int centerY = RES/4;
-	const int centerZ = RES/2;
+	const int centerZ = RES-RES/4;
 	float dens = (rand()%1000)/1000.0f;
 	for (int i = 1 ; i <= N ; i++) {
 		for (int j = 1 ; j <= N ; j++) {

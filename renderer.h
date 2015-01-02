@@ -10,6 +10,7 @@ class Fluid;	// forward definition
 
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
 
+
 class Renderer
 {
 private:
@@ -35,18 +36,18 @@ private:
 	float _light_dir[3];
 	int _ray_templ[4096][3];
 
-		// draw the outline of the cube
+	// draw the outline of the cube
 	void draw_cube(void);
 
-		// draw the slices. m must be the current rotation matrix.
-		// if frame==true, the outline of the slices will be drawn as well
-	void draw_slices(GLdouble m[][4], bool frame);
-		// intersect a plane with the cube, helper function for draw_slices()
+	// draw the slices. m must be the current rotation matrix.
+	// if frame==true, the outline of the slices will be drawn as well
+	void draw_slices(GLdouble m[16], bool frame);
+	// intersect a plane with the cube, helper function for draw_slices()
 	std::vector<Eigen::Vector3f> intersect_edges(float a, float b, float c, float d);
 
 	void gen_ray_templ(int edgelen);
-	void cast_light(int edgelen, float* dens, unsigned char* intensity);
-	inline void light_ray(int x, int y, int z, int n, float decay, float* dens, unsigned char* intensity);
+	void cast_light(int edgelen, const float* dens, unsigned char* intensity);
+	inline void light_ray(int x, int y, int z, int n, float decay, const float* dens, unsigned char* intensity);
 
 
 	void init_GL(void);

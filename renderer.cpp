@@ -83,8 +83,8 @@ void Renderer::init_GL(void)
 
 void Renderer::Render(void)
 {
-	GLdouble m[4][4], mt[4][4];
-	glGetDoublev(GL_MODELVIEW_MATRIX, &m[0][0]);
+	GLdouble m[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, m);
 
 	glDisable(GL_DEPTH_TEST);	//Important in this rendering
 
@@ -171,11 +171,11 @@ class Convexcomp
 		}
 };
 
-void Renderer::draw_slices(GLdouble m[][4], bool frame)
+void Renderer::draw_slices(GLdouble m[16], bool frame)
 {
 	int i;
+	Eigen::Vector3f viewdir(-m[2], -m[6], -m[10]);	//FIXME
 
-	Eigen::Vector3f viewdir(-m[0][2], -m[1][2], -m[2][2]);	//FIXME
 	viewdir.normalize();
 	// find cube vertex that is closest to the viewer
 	for (i=0; i<8; i++) {
@@ -211,12 +211,11 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 			glBegin(GL_POLYGON);
 			for (i=0; i<pt.size(); i++){
 				glColor3f(1.0, 1.0, 1.0);
-				glTexCoord3d((pt[i][2]+1.0)/2.0, (pt[i][1]+1)/2.0, (pt[i][0]+1.0)/2.0);//FIXME
+				glTexCoord3d((pt[i][0]+1.0)/2.0, (pt[i][1]+1)/2.0, (pt[i][2]+1.0)/2.0);//FIXME
 				glVertex3f(pt[i][0], pt[i][1], pt[i][2]);
 			}
 			glEnd();
 
-#if 1
 			frame = false;
 			if (frame)
 			{
@@ -230,7 +229,6 @@ void Renderer::draw_slices(GLdouble m[][4], bool frame)
 				glEnd();
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			}
-#endif
 		}
 		n++;
 	}
@@ -260,24 +258,42 @@ std::vector<Eigen::Vector3f> Renderer::intersect_edges(float a, float b, float c
 
 void Renderer::FillTexture(Fluid* fluid)
 {
-	if (_texture_data == NULL)
-		_texture_data = (unsigned char*) malloc(RES*RES*RES*4);
+	if (_texture_data == NULL) {
+		_texture_data = (unsigned char*) malloc(SIZE*4);
+	}
 
-	unsigned char* l = (unsigned char*) malloc(RES*RES*RES);
-	memset(l,0,RES*RES*RES);
+	unsigned char* l = (unsigned char*) malloc(SIZE);
+	memset(l,0, SIZE);
 	cast_light(RES, fluid->_density, l);
 
-	for (int i=0; i<RES*RES*RES; i++) {
 #if 1
-		unsigned char c = l[i];
+	//FIXME: It is important to beware that texture coordinate
+	//is in reverse order  of the simulation coordinate
+	for (int i = 0 ; i < RES ; i++) {
+		for (int j = 0 ; j < RES ; j++) {
+			for (int k = 0 ; k < RES ; k++) {
+				//unsigned char c = 200;
+				int texIndex = i*RES*RES + j*RES + k;	/*reverse order*/
+				int densIndex = k*RES*RES + j*RES + i;
+				unsigned char c = l[densIndex];
+				_texture_data[texIndex*4] = c;
+				_texture_data[texIndex*4+1] = c;
+				_texture_data[texIndex*4+2] = c;
+				_texture_data[texIndex*4+3] = (fluid->_density[densIndex]>0.1f) ? 
+					255 : (unsigned char) (fluid->_density[densIndex]*2550.0f);
+			}
+		}
+	}
 #else
-		unsigned char c = 200-fluid->_density[i];
-#endif
+	for (int i=0; i<SIZE; i++) {
+		unsigned char c = l[i];
+		//unsigned char c = 200;
 		_texture_data[(i<<2)] = c;
 		_texture_data[(i<<2)+1] = c;
 		_texture_data[(i<<2)+2] = c;
 		_texture_data[(i<<2)+3] = (fluid->_density[i]>0.1f) ? 255 : (unsigned char) (fluid->_density[i]*2550.0f);
 	}
+#endif
 
 	free(l);
 
@@ -362,7 +378,7 @@ void Renderer::gen_ray_templ(int edgelen)
 }
 
 #define DECAY 0.06f
-void Renderer::cast_light(int n /*edgelen*/, float* dens, unsigned char* intensity)
+void Renderer::cast_light(int n /*edgelen*/, const float* dens, unsigned char* intensity)
 {
 
 	int i,j;
@@ -385,7 +401,7 @@ void Renderer::cast_light(int n /*edgelen*/, float* dens, unsigned char* intensi
 
 
 #define AMBIENT 100
-inline void Renderer::light_ray(int x, int y, int z, int n, float decay, float* dens, unsigned char* intensity)
+inline void Renderer::light_ray(int x, int y, int z, int n, float decay, const float* dens, unsigned char* intensity)
 {
 	int xx = x, yy = y, zz = z, i = 0;
 	int offset;
@@ -394,8 +410,7 @@ inline void Renderer::light_ray(int x, int y, int z, int n, float decay, float* 
 	float d;
 
 	do {
-		offset = ((zz*n) + yy)*n + xx;
-		//offset = ((xx*n) + yy)*n + zz;
+		offset = ((xx*n) + yy)*n + zz;//FIXME
 		if (intensity[offset] > 0)
 			intensity[offset] = (unsigned char) ((intensity[offset] + l)*0.5f);
 		else

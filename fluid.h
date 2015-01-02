@@ -12,7 +12,7 @@
 #define RES 40			// box resolution
 #define N ((RES)-2)			// valid simulation area
 #define SIZE ((RES)*(RES)*(RES))
-#define _I(x,y,z) (((x)*(RES)*(RES))+((y)*(RES))+(z))
+#define _I(x,y,z) (((x)*(RES)*(RES))+((y)*(RES))+(z))	//FIXME
 
 #define FOR_ALL_CELL for (int i=1; i<=(N); i++) {\
 	for (int j=1; j<=(N); j++) {\
