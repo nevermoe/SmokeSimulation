@@ -11,7 +11,8 @@ Arcball::Arcball()
 {
 	this->ballRadius=600;
 	isRotating=false;
-	zoomRate = 0.003;
+	_isDragging = false;
+	zoomRate = 0.3;
 	width=height=0;
 	Reset();
 }
@@ -37,6 +38,35 @@ void Arcball::SetWidthHeight(int w, int h)
 void Arcball::SetRadius(float newRadius)
 {  
 	ballRadius = newRadius;
+}
+
+void Arcball::StartDragging(int x, int y)
+{
+	_startDragX = x;
+	_startDragY = y;
+	_isDragging = true;
+	_upDir = Eigen::Vector3f(0.0, 1.0, 0.0);
+
+	GLdouble mvMatrix[16];
+	glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
+	_viewDir[0] = -mvMatrix[2];
+	_viewDir[1] = -mvMatrix[6];
+	_viewDir[2] = -mvMatrix[10];
+	_rightDir = _viewDir.cross(_upDir);
+}
+
+Eigen::Vector3f Arcball::UpdateDragging(int nx, int ny)
+{
+	Eigen::Vector3f offset;
+	offset[0] = 0.0001*_rightDir[0] * (nx - _startDragX);
+	offset[1] = 0.0001*_upDir[1] * (_startDragY - ny);
+	offset[2] = 0.0001*_rightDir[2]*(nx-_startDragX) + _upDir[2]* (_startDragY-ny);
+	return offset;
+}
+
+void Arcball::StopDragging()
+{
+	_isDragging = false;
 }
 
 void Arcball::StartZooming(int x, int y)

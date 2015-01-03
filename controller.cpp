@@ -29,6 +29,11 @@ static void mousemotion(GLFWwindow *window, double x, double y)
 	::g_controller->MouseMotion(window, x, y);
 }
 
+static void mousescroll(GLFWwindow *window, double x, double y)
+{
+	::g_controller->MouseScroll(window, x, y);
+}
+
 void Controller::RegisterObject(Object* object)
 {
 	object->RegisterParentWindow(windowHandle_);
@@ -80,6 +85,7 @@ Controller::Controller(int argc,char **argv, const char *windowName)
 	// Callbacks
 	glfwSetErrorCallback(error_callback);
 	glfwSetMouseButtonCallback(windowHandle_, mousebutton);
+	glfwSetScrollCallback(windowHandle_, mousescroll);
 	glfwSetCursorPosCallback(windowHandle_, mousemotion);
 	glfwSetKeyCallback(windowHandle_, keyboard);
 	glfwSetWindowSizeCallback(windowHandle_, resize);
@@ -190,7 +196,7 @@ void Controller::Resize(GLFWwindow *window, int x, int y) {
 		objects_[i]->Resize(window, x, y);
 }
 
-void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods)	
+void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods)
 {
 	if (action == GLFW_PRESS) {
 		switch(key) {
@@ -216,12 +222,10 @@ void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action
 
 void Controller::MouseButton(GLFWwindow *window, int button,int action,int mods) 
 {
-
 	//get active object and then transfer the message to the object
 	if(action == GLFW_PRESS) {
 		glfwGetCursorPos(window, &prevX_, &prevY_);
 	}
-
 	activeObj_ = GetActiveObject(prevX_, prevY_);
 	objects_[activeObj_]->MouseButton(window, button, action, mods);
 }
@@ -232,3 +236,7 @@ void Controller::MouseMotion(GLFWwindow *window, double nx, double ny)
 	objects_[activeObj_]->MouseMotion(window, nx, ny);
 }
 
+void Controller::MouseScroll(GLFWwindow *window, double nx, double ny)
+{
+	objects_[activeObj_]->MouseScroll(window, nx, ny);
+}

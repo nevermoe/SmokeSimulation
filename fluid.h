@@ -26,6 +26,7 @@ class Fluid: public Object
 {
 protected:
 	float _buffers[10][SIZE];
+	bool _isLightSelected;
 public:
 	float *_density, *_densityTmp;			// density
 	float *_velX, *_velXTmp;			// velocity in x direction
@@ -33,6 +34,7 @@ public:
 	float *_velZ, *_velZTmp;			// velocity in z direction
 	float _dt;
 
+	Eigen::Vector3f _lightPos;
 	Renderer * _renderer;				//register a renderer
 
 protected:
@@ -55,6 +57,10 @@ protected:
 	void ClearSources(void);
 
 	void _GenerateSmoke();
+
+	virtual void MouseButton(GLFWwindow *window, int button,int action,int mods);
+	virtual void MouseMotion(GLFWwindow *window, double nx, double ny);
+	bool LightSelected(double mouseX, double mouseY);
 public:
 	float sd[SIZE], su[SIZE], sv[SIZE], sw[SIZE], sT[SIZE];	// sources for density and velocities
 	float diffusion, viscosity, buoyancy, vc_eps;

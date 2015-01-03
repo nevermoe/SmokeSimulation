@@ -10,6 +10,7 @@ Fluid::Fluid()
 	buoyancy  = 4.0f;
 	vc_eps    = 5.0f;
 	_dt = DT;
+	_isLightSelected = false;
 
 	for (int i=0; i<10; i++)
 		ClearBuffer(_buffers[i]);
@@ -22,7 +23,108 @@ Fluid::Fluid()
 
 	ClearSources();
 
+	_lightPos[0] = -1.2f;
+	_lightPos[1] = 1.2f;
+	_lightPos[2] = 1.2f;
 	_renderer = new Renderer();
+	_renderer->SetLightPostion(_lightPos);
+}
+
+bool Fluid::LightSelected(double mouseX, double mouseY)
+{
+	GLdouble mvMatrix[16], projMatrix[16];
+	GLint viewportMatrix[4];
+	double objX = 0, objY = 0, objZ = 0;
+	glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	glGetIntegerv(GL_VIEWPORT, viewportMatrix);
+
+	//point on 'near' plane
+	gluUnProject(mouseX, winY_-mouseY, 0.0,  mvMatrix,  projMatrix,
+			viewportMatrix, &objX, &objY, &objZ);
+	Eigen::Vector3f ptNear(objX,objY, objZ); 
+
+	//point on 'far' plane
+	gluUnProject(mouseX, winY_-mouseY, 1.0,  mvMatrix,  projMatrix,
+			viewportMatrix, &objX, &objY, &objZ);
+	Eigen::Vector3f ptFar(objX,objY, objZ); 
+
+#if 1
+	//calculate distance between point and line
+	Eigen::Vector3f crossProduct = (_lightPos-ptNear).cross(_lightPos-ptFar);
+	float dist = crossProduct.norm() /
+		(ptFar-ptNear).norm();
+#else
+	//another method: calculate distance between point and line
+	Eigen::Vector3f lineDir = (ptFar-ptNear);
+	lineDir.normalize();
+	Eigen::Vector3f pointDir = (_lightPos-ptNear);
+	float t = pointDir.dot(lineDir);
+	Eigen::Vector3f projection = ptNear + (lineDir * t);
+	float dist = (projection-_lightPos).norm();
+#endif
+	if (dist < 0.1)
+		return true;
+
+	return false;
+}
+
+void Fluid::MouseButton(GLFWwindow *window, int button,int action,int mods) 
+{
+	double mouseX, mouseY;
+	if(button == GLFW_MOUSE_BUTTON_LEFT) {
+		::glfwGetCursorPos(window, &mouseX, &mouseY);
+		if(action == GLFW_PRESS) {
+			isLeftKeyPressed_ = true;
+
+			if (LightSelected(mouseX, mouseY)) {
+				std::cout << "light selected" << std::endl;
+				_isLightSelected = true;
+				arcball_.StartDragging(mouseX, mouseY);
+			}
+			arcball_.StartRotation(mouseX, mouseY);
+		}
+		else if(action == GLFW_RELEASE) {
+			isLeftKeyPressed_ = false;
+			_isLightSelected = false;
+			arcball_.StopRotation();
+			arcball_.StopDragging();
+		}
+	}
+	else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
+		isMiddleKeyPressed_ = (action == GLFW_PRESS);
+	}
+	else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
+#if 0
+		if (action == GLFW_PRESS) {
+			isRightKeyPressed_ = true;
+			::glfwGetCursorPos(window, &mouseX, &mouseY);
+			arcball_.StartZooming(mouseX, mouseY);
+		}
+		else if(action ==GLFW_RELEASE) {
+			isRightKeyPressed_ = false;
+			arcball_.StopZooming();
+		}
+#endif
+	}
+}
+
+void Fluid::MouseMotion(GLFWwindow *window, double nx, double ny) 
+{
+	if(isLeftKeyPressed_ && isCtrlPressed_) {
+	}
+	else if(isLeftKeyPressed_ && _isLightSelected) {
+		_lightPos += arcball_.UpdateDragging(nx, ny);
+		_renderer->SetLightPostion(_lightPos);
+	}
+	else if(isLeftKeyPressed_) {
+		arcball_.UpdateRotation(nx, ny);
+	}
+#if 0
+	else if(isRightKeyPressed_) {
+		arcball_.UpdateZooming(nx, ny);
+	}
+#endif
 }
 
 Fluid::~Fluid()
@@ -247,13 +349,13 @@ void Fluid::DensityStep()
 void Fluid::_GenerateSmoke()
 {
 	const int centerY = RES/4;
-	const int centerZ = RES-RES/4;
+	const int centerZ = RES/2;
 	float dens = (rand()%1000)/1000.0f;
 	for (int i = 1 ; i <= N ; i++) {
 		for (int j = 1 ; j <= N ; j++) {
 			if (hypot(i-centerY, j-centerZ) < RES/10) {
 				this->_density[_I(5,i,j)] = dens;
-				this->_velX[_I(5,i,j)] = 5.0f;
+				this->_velX[_I(5,i,j)] = 2.0f;
 			}
 		}
 	}
@@ -275,6 +377,7 @@ void Fluid::Show()
 #if 1
 	_renderer->FillTexture(this);
 	_renderer->Render();
+
 #else
 	glBegin(GL_POINTS);
 	FOR_ALL_CELL {
@@ -283,6 +386,14 @@ void Fluid::Show()
 		}
 	} END_FOR
 	glEnd();
+
+	glPointSize(13.0f);
+	glBegin(GL_POINTS);
+	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnd();
+	glPointSize(1.0f);
 #endif
 }
 

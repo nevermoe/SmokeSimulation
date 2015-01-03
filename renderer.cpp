@@ -28,11 +28,11 @@ float edges[12][2][3] = {
 	{{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
 };
 
+
 Renderer::Renderer()
 {
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 
-	_dist = 5.0f;
 	_fp = NULL;
 	_texture_data = NULL;
 
@@ -40,16 +40,6 @@ Renderer::Renderer()
 
 	init_GL();
 
-#if	0
-	_light_dir[0] = -1.0f;
-	_light_dir[1] = -1.0f;
-	_light_dir[2] = -1.0f;
-#else
-	_light_dir[0] = 0.0f;
-	_light_dir[1] = 1.0f;
-	_light_dir[2] = -1.0f;
-#endif
-	gen_ray_templ(RES);
 }
 
 Renderer::~Renderer()
@@ -58,6 +48,19 @@ Renderer::~Renderer()
 		free(_texture_data);
 	if (_fp)
 		fclose(_fp);
+}
+
+void Renderer::SetLightPostion(Eigen::Vector3f &pos)
+{
+	_lightPos[0] = pos[0];
+	_lightPos[1] = pos[1];
+	_lightPos[2] = pos[2];
+
+	_light_dir[0] = -_lightPos[0];
+	_light_dir[1] = -_lightPos[1];
+	_light_dir[2] = -_lightPos[2];
+
+	gen_ray_templ(RES);
 }
 
 void Renderer::init_GL(void)
@@ -147,10 +150,8 @@ void Renderer::draw_cube(void)
 	
 	glPointSize(13.0f);
 	glBegin(GL_POINTS);
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-#define PDIST 1.2f
-	glVertex3f(-_light_dir[0]*PDIST,-_light_dir[1]*PDIST,-_light_dir[2]*PDIST);
-#undef PDIST
+	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
 	glEnd();
 
 
@@ -196,7 +197,7 @@ void Renderer::draw_slices(GLdouble m[16], bool frame)
 	// d is the parameter along the view direction. the first d is given by
 	// inserting previously found vertex into the plane equation
 	float d0 = -(viewdir[0]*cv[i][0] + viewdir[1]*cv[i][1] + viewdir[2]*cv[i][2]);
-	float dd = 2*d0/64.0f;
+	float dd = 2*d0/SLICE_NUM;
 	int n = 0;
 	for (float d = -d0; d < d0; d += dd) {
 		// intersect_edges returns the intersection points of all cube edges with

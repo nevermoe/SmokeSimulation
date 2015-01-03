@@ -28,6 +28,7 @@ public:
 	void Keyboard(GLFWwindow * window, int key, int scancode,int action, int mods);
 	void MouseButton(GLFWwindow *window, int btn, int action, int mods);
 	void MouseMotion(GLFWwindow *window, double x, double y);
+	void MouseScroll(GLFWwindow *window, double x, double y);
 
 private:
 	// Window management

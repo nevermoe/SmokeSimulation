@@ -33,6 +33,7 @@ public:
 
 	virtual void MouseButton(GLFWwindow *window, int button,int action,int mods);
 	virtual void MouseMotion(GLFWwindow *window, double nx, double ny);
+	virtual void MouseScroll(GLFWwindow *window, double nx, double ny);
 	virtual void Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods) {}
 	virtual void Resize(GLFWwindow *window, int x, int y);
 

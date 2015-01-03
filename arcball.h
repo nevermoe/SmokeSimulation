@@ -98,6 +98,10 @@ private:
    float transX, transY;
    float currentTransX, currentTransY;
    float startZoomX, startZoomY;
+   float _startDragX, _startDragY;
+   Eigen::Vector3f _viewDir;
+   Eigen::Vector3f _upDir;
+   Eigen::Vector3f _rightDir;
 
    GLMatrix startMatrix;
    GLMatrix currentMatrix;
@@ -109,6 +113,7 @@ private:
 
    bool isZooming;
    bool isRotating;
+   bool _isDragging;
    float ballRadius;
    double residualSpin;
    static const float INITIAL_FOV;
@@ -129,6 +134,9 @@ public:
    void UpdateZooming(int x, int y);
    void StopZooming();
 
+   void StartDragging(int x, int y);
+   Eigen::Vector3f UpdateDragging(int x, int y);
+   void StopDragging();
 
    void ApplyRotationMatrix();
 

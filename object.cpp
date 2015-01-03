@@ -202,6 +202,7 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 		isMiddleKeyPressed_ = (action == GLFW_PRESS);
 	}
 	else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
+#if 0
 		if (action == GLFW_PRESS) {
 			isRightKeyPressed_ = true;
 			::glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -211,6 +212,7 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 			isRightKeyPressed_ = false;
 			arcball_.StopZooming();
 		}
+#endif
 	}
 }
 
@@ -221,9 +223,18 @@ void Object::MouseMotion(GLFWwindow *window, double nx, double ny)
 	else if(isLeftKeyPressed_) {
 		arcball_.UpdateRotation(nx, ny);
 	}
+#if 0
 	else if(isRightKeyPressed_) {
 		arcball_.UpdateZooming(nx, ny);
 	}
+#endif
+}
+
+void Object::MouseScroll(GLFWwindow *window, double nx, double ny)
+{
+	arcball_.StartZooming(0, 0);
+	arcball_.UpdateZooming(-ny, nx);
+	arcball_.StopZooming();
 }
 
 void Object::ComputeNormal(GLfloat v[3][3], GLfloat normal[]) 
