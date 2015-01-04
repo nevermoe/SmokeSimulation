@@ -8,5 +8,5 @@ Mouse:
 Keyboard:
 R to reset the scene.
 
- ![image](https://raw.githubusercontent.com/nevermoe/SmokeSimulation/master/screenshots/screenshot1.png)
- ![image](http://github.com/nevermoe/SmokeSimulation/raw/master/screenshots/screenshot2.png)
+ ![ScreenShot](https://raw.githubusercontent.com/nevermoe/SmokeSimulation/master/screenshots/screenshot1.png)
+ ![ScreenShot](https://raw.githubusercontent.com/nevermoe/SmokeSimulation/master/screenshots/screenshot2.png)
