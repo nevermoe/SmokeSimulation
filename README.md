@@ -1,3 +1,7 @@
+This is a fluid simulation program.
+The smoke is simulated using Euler method (grid-based method), and
+rendered with volume ray casting.
+
 1. make
 2. run ./main
 
