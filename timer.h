@@ -1,3 +1,6 @@
+#ifndef _TIMER_H
+#define _TIMER_H
+
 #include "core.h"
 
 class Timer {
@@ -6,7 +9,9 @@ public:
 	void StartTimer();
 	double StopTimer();
 private:
-	double startTime_;
-	double stopTime_;
-	double elapsedTime_;
+	double _startTime;
+	double _stopTime;
+	double _elapsedTime;
 };
+
+#endif

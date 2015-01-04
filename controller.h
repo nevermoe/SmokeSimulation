@@ -1,5 +1,5 @@
-#ifndef CONTROLLER_H 
-#define CONTROLLER_H
+#ifndef _CONTROLLER_H 
+#define _CONTROLLER_H
 
 #include "core.h"
 #include "object.h"
@@ -32,29 +32,29 @@ public:
 
 private:
 	// Window management
-	std::string windowName_;
-	std::stringstream titleInfo_;
-	GLFWwindow *windowHandle_;
-	int winX_, winY_;
+	std::string _windowName;
+	std::stringstream _titleInfo;
+	GLFWwindow *_windowHandle;
+	int _winX, _winY;
 
 	// Input
-	bool isLeftKeyPressed_, isCtrlPressed_, isRightKeyPressed_, isMiddleKeyPressed_;
-	bool isLightOn_;
+	bool _isLeftKeyPressed, _isCtrlPressed, _isRightKeyPressed, _isMiddleKeyPressed;
+	bool _isLightOn;
 	
-	double prevX_, prevY_;
+	double _prevCursorX, _prevCursorY;
 
-	Object** objects_;
-	int objectNo_;
-	int maxObjectNo_;
-	int activeObj_;
+	Object** _objects;
+	int _objectNo;
+	int _maxObjectNo;
+	int _activeObj;
 
-	Camera* camera_;
+	Camera* _camera;
 
 	void _ComputeFPS();
-	Timer timer_;
-	double elapsedTime_;
-	int numOfFrame_;
-	double fps_;
+	Timer _timer;
+	double _elapsedTime;
+	int _numOfFrame;
+	double _fps;
 };
 
 #endif

@@ -1,33 +1,31 @@
-#define _USE_MATH_DEFINES
-
 #include "core.h"
 #include "arcball.h"
 
 /**
  * \ingroup GLVisualization
- * Default constructor, it sets the ballRadius to 600
+ * Default constructor, it sets the _ballRadius to 600
  **/
 Arcball::Arcball()
 {
-	this->ballRadius=600;
-	isRotating=false;
+	_ballRadius = 600;
+	_isRotating = false;
 	_isDragging = false;
-	zoomRate = 0.3;
-	width=height=0;
+	_zoomRate = 0.3;
+	_winX = _winY = 0;
 	Reset();
 }
 
 /**
  * \ingroup GLVisualization
- * Set width and height of the current windows, it's needed every time you resize the window
- * \param w Width of the rendering window
- * \param h Height of the rendering window
+ * Set _winX and _winY of the current windows, it's needed every time you resize the window
+ * \param w _winX of the rendering window
+ * \param h _winY of the rendering window
  **/
 void Arcball::SetWidthHeight(int w, int h)
 {  
-	width=w;
-	height=h;
-	ballRadius = std::min((int)(w/2), (int)(h/2));
+	_winX = w;
+	_winY = h;
+	_ballRadius = std::min((int)(w/2), (int)(h/2));
 }
 
 /**
@@ -37,7 +35,7 @@ void Arcball::SetWidthHeight(int w, int h)
  **/
 void Arcball::SetRadius(float newRadius)
 {  
-	ballRadius = newRadius;
+	_ballRadius = newRadius;
 }
 
 void Arcball::StartDragging(int x, int y)
@@ -52,15 +50,36 @@ void Arcball::StartDragging(int x, int y)
 	_viewDir[0] = -mvMatrix[2];
 	_viewDir[1] = -mvMatrix[6];
 	_viewDir[2] = -mvMatrix[10];
+#if 0
+	_upDir[0] = mvMatrix[1];
+	_upDir[1] = mvMatrix[5];
+	_upDir[2] = mvMatrix[9];
+	_rightDir[0] = mvMatrix[0];
+	_rightDir[1] = mvMatrix[4];
+	_rightDir[2] = mvMatrix[8];
+#else
+	_upDir = Eigen::Vector3f(0.0, 1.0, 0.0);
 	_rightDir = _viewDir.cross(_upDir);
+#endif
 }
 
 Eigen::Vector3f Arcball::UpdateDragging(int nx, int ny)
 {
+	_dragRate = 0.003 * _winX/1024;
 	Eigen::Vector3f offset;
-	offset[0] = 0.0001*_rightDir[0] * (nx - _startDragX);
-	offset[1] = 0.0001*_upDir[1] * (_startDragY - ny);
-	offset[2] = 0.0001*_rightDir[2]*(nx-_startDragX) + _upDir[2]* (_startDragY-ny);
+#if 1
+	offset[0] = _dragRate * _rightDir[0] * (nx - _startDragX);
+	offset[1] = _dragRate * _upDir[1] * (_startDragY - ny);
+	offset[2] = _dragRate * _rightDir[2]*(nx-_startDragX) + _upDir[2]* (_startDragY-ny);
+#else
+	_viewDir.normalize();
+	offset[0] = _dragRate * _viewDir[0] * (nx - _startDragX);
+	offset[1] = _dragRate * _rightDir[0] * (_startDragY - ny);
+	offset[2] = _dragRate * _upDir[0]*(nx-_startDragX) + _upDir[0]* (_startDragY-ny);
+#endif
+
+	_startDragX = nx;
+	_startDragY = ny;
 	return offset;
 }
 
@@ -72,26 +91,26 @@ void Arcball::StopDragging()
 void Arcball::StartZooming(int x, int y)
 {
 	//store original transform matrix
-	glGetFloatv(GL_MODELVIEW_MATRIX, startMatrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, _startMatrix);
 
-	startZoomX = x;
-	startZoomY = y;
-	isZooming = true;
+	_startZoomX = x;
+	_startZoomY = y;
+	_isZooming = true;
 }
 
 void Arcball::UpdateZooming(int x, int y)
 {
-	if (isZooming) {
+	if (_isZooming) {
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(0.0f, 0.0f, zoomRate * (x - startZoomX) );
+		glTranslatef(0.0f, 0.0f, _zoomRate * (x - _startZoomX) );
 	}
 	ApplyRotationMatrix();
 }
 
 void Arcball::StopZooming()
 {
-	isZooming = false;
+	_isZooming = false;
 }
 
 /**
@@ -104,17 +123,17 @@ void Arcball::StopZooming()
  **/
 void Arcball::StartRotation(int _x, int _y)
 {
-	int x = ( (_x)-(width/2) );
-	int y = ((height/2)-_y);
+	int x = ( (_x)-(_winX/2) );
+	int y = ((_winY/2)-_y);
 
 	//store original transform matrix
-	glGetFloatv(GL_MODELVIEW_MATRIX, startMatrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, _startMatrix);
 
-	startRotationVector = ConvertXY(x,y);
-	startRotationVector.normalize();
+	_startRotationVector = ConvertXY(x,y);
+	_startRotationVector.normalize();
 
-	currentRotationVector=  startRotationVector;
-	isRotating = true;
+	_currentRotationVector=  _startRotationVector;
+	_isRotating = true;
 
 }
 
@@ -127,12 +146,12 @@ void Arcball::StartRotation(int _x, int _y)
  **/
 void Arcball::UpdateRotation(int _x, int _y)
 {  
-	int x = ( (_x)-(width/2) );
-	int y = ((height/2)-_y);
+	int x = ( (_x)-(_winX/2) );
+	int y = ((_winY/2)-_y);
 
-	currentRotationVector = ConvertXY(x,y);
+	_currentRotationVector = ConvertXY(x,y);
 
-	currentRotationVector.normalize();
+	_currentRotationVector.normalize();
 
 	//Fixed by MY
 	glMatrixMode(GL_MODELVIEW);
@@ -149,23 +168,23 @@ void Arcball::UpdateRotation(int _x, int _y)
 void Arcball::ApplyRotationMatrix()
 {  
 	//recover original matrix
-	glMultMatrixf(startMatrix);
+	glMultMatrixf(_startMatrix);
 
-	if (isRotating) { 
+	if (_isRotating) { 
 		// Do some rotation according to start and current rotation vectors
-		//cerr << currentRotationVector.transpose() << " " << startRotationVector.transpose() << endl;
-		if ( ( currentRotationVector - startRotationVector).norm() > 1E-6 )	{
-			Eigen::Vector3d rotationAxis = currentRotationVector.cross(startRotationVector);
+		//cerr << _currentRotationVector.transpose() << " " << _startRotationVector.transpose() << endl;
+		if ( ( _currentRotationVector - _startRotationVector).norm() > 1E-6 )	{
+			Eigen::Vector3d rotationAxis = _currentRotationVector.cross(_startRotationVector);
 			rotationAxis.normalize();
 
 			//FIXED by MY
 			Eigen::Matrix3d sm;
 			for(int i = 0 ; i < 3 ; i++)
 				for(int j = 0 ; j < 3 ; j++)
-					sm(i,j) = (double)startMatrix[4*i+j];
+					sm(i,j) = (double)_startMatrix[4*i+j];
 			rotationAxis = sm * rotationAxis;
 
-			double val = currentRotationVector.dot(startRotationVector);
+			double val = _currentRotationVector.dot(_startRotationVector);
 			val > (1-1E-10) ? val=1.0 : val=val ;
 			double rotationAngle = acos(val) * 180.0f/(float)M_PI;
 
@@ -185,7 +204,7 @@ void Arcball::StopRotation()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	ApplyRotationMatrix();
-	isRotating = false;
+	_isRotating = false;
 }
 
 
@@ -193,7 +212,7 @@ Eigen::Vector3d Arcball::ConvertXY(int x, int y)
 {
 
 	int d = x*x+y*y;
-	float radiusSquared = ballRadius*ballRadius;
+	float radiusSquared = _ballRadius * _ballRadius;
 	if (d > radiusSquared) {
 		return Eigen::Vector3d((float)x,(float)y, 0 );
 	}
@@ -208,31 +227,25 @@ Eigen::Vector3d Arcball::ConvertXY(int x, int y)
  **/
 void Arcball::Reset()
 {  
-	fov = INITIAL_FOV;
 	// reset matrix
-	memset(startMatrix, 0, sizeof(startMatrix));
-	startMatrix[0] = 1;
-	startMatrix[1] =0;
-	startMatrix[2] = 0;
-	startMatrix[3] = 0;
-	startMatrix[4] = 0;
-	startMatrix[5] =1;
-	startMatrix[6] = 0;
-	startMatrix[7] = 0;
-	startMatrix[8] = 0;
-	startMatrix[9] =0;
-	startMatrix[10] = 1;
-	startMatrix[11] = 0;
-	startMatrix[12] = 0;
-	startMatrix[13] =0;
-	startMatrix[14] = 0;
-	startMatrix[15] = 1;
+	memset(_startMatrix, 0, sizeof(_startMatrix));
+	_startMatrix[0] = 1;
+	_startMatrix[1] =0;
+	_startMatrix[2] = 0;
+	_startMatrix[3] = 0;
+	_startMatrix[4] = 0;
+	_startMatrix[5] =1;
+	_startMatrix[6] = 0;
+	_startMatrix[7] = 0;
+	_startMatrix[8] = 0;
+	_startMatrix[9] =0;
+	_startMatrix[10] = 1;
+	_startMatrix[11] = 0;
+	_startMatrix[12] = 0;
+	_startMatrix[13] =0;
+	_startMatrix[14] = 0;
+	_startMatrix[15] = 1;
 
-	transX = transY = 0;
-	startZoomX = startZoomY = currentTransX = currentTransY = 0;
+	_startZoomX = _startZoomY = 0;
 }
-
-
-const float Arcball::INITIAL_FOV = 30;
-const float Arcball::TRANSLATION_FACTOR = 0.01f;
 

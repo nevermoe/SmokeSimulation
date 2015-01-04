@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef _CAMERA_H
+#define _CAMERA_H
 
 #include "core.h"
 
@@ -17,15 +17,15 @@ public:
 
 private:
 	// Perspective controls
-	GLfloat FOV_;		// Field of View Angle
-	GLfloat aspect_;	// Aspect Ratio
-	GLfloat nearClip_;	// Near clipping plane distance
-	GLfloat farClip_;	// Far clipping plane distance
-	int winX_;
-	int winY_;
+	GLfloat _FOV;		// Field of View Angle
+	GLfloat _aspect;	// Aspect Ratio
+	GLfloat _nearClip;	// Near clipping plane distance
+	GLfloat _farClip;	// Far clipping plane distance
+	int _winX;
+	int _winY;
 
 
-	GLFWwindow* windowHandle_;
+	GLFWwindow* _windowHandle;
 };
 
 /*

@@ -36,33 +36,33 @@ static void mousescroll(GLFWwindow *window, double x, double y)
 
 void Controller::RegisterObject(Object* object)
 {
-	object->RegisterParentWindow(windowHandle_);
+	object->RegisterParentWindow(_windowHandle);
 	object->Reset();
-	objects_[objectNo_++] = object;
-	activeObj_++;
+	_objects[_objectNo++] = object;
+	_activeObj++;
 }
 
 
 Controller::Controller(int argc,char **argv, const char *windowName) 
 {
-	windowName_ = windowName;
+	_windowName = windowName;
 
 	//for timer
-	elapsedTime_ = 0;
-	numOfFrame_ = 0;
-	fps_ = 0;
+	_elapsedTime = 0;
+	_numOfFrame = 0;
+	_fps = 0;
 
-	winX_ = 1280;
-	winY_ = 960;
+	_winX = 1280;
+	_winY = 960;
 
-	activeObj_ = -1;
-	objectNo_ = 0;
-	maxObjectNo_ = 100;
-	objects_ = new Object*[maxObjectNo_];
+	_activeObj = -1;
+	_objectNo = 0;
+	_maxObjectNo = 100;
+	_objects = new Object*[_maxObjectNo];
 
-	isCtrlPressed_ = isLeftKeyPressed_ = isMiddleKeyPressed_ = isRightKeyPressed_ = false;
-	isLightOn_ = true;
-	prevX_ = prevY_ = 0;
+	_isCtrlPressed = _isLeftKeyPressed = _isMiddleKeyPressed = _isRightKeyPressed = false;
+	_isLightOn = true;
+	_prevCursorX = _prevCursorY = 0;
 
 	// Initialize components
 	if (!glfwInit()) {
@@ -71,24 +71,24 @@ Controller::Controller(int argc,char **argv, const char *windowName)
 	}
 
 	// Create the window
-	windowHandle_ = glfwCreateWindow(winX_, winY_, windowName, NULL, NULL);
-	if (!windowHandle_) {
+	_windowHandle = glfwCreateWindow(_winX, _winY, windowName, NULL, NULL);
+	if (!_windowHandle) {
 		std::cerr << "Create Window failed"  << std::endl;
 		exit(-1);
 	}
-	glfwMakeContextCurrent(windowHandle_);
-	glfwSetWindowPos(windowHandle_, 0, 0);
+	glfwMakeContextCurrent(_windowHandle);
+	glfwSetWindowPos(_windowHandle, 0, 0);
 
 	// Background color
 	glClearColor( 0., 0., 0., 1. );
 
 	// Callbacks
 	glfwSetErrorCallback(error_callback);
-	glfwSetMouseButtonCallback(windowHandle_, mousebutton);
-	glfwSetScrollCallback(windowHandle_, mousescroll);
-	glfwSetCursorPosCallback(windowHandle_, mousemotion);
-	glfwSetKeyCallback(windowHandle_, keyboard);
-	glfwSetWindowSizeCallback(windowHandle_, resize);
+	glfwSetMouseButtonCallback(_windowHandle, mousebutton);
+	glfwSetScrollCallback(_windowHandle, mousescroll);
+	glfwSetCursorPosCallback(_windowHandle, mousemotion);
+	glfwSetKeyCallback(_windowHandle, keyboard);
+	glfwSetWindowSizeCallback(_windowHandle, resize);
 
 	if(glewInit() != GLEW_OK) {
 		std::cerr << "glewInit() failed!" << std::endl;
@@ -100,18 +100,18 @@ Controller::Controller(int argc,char **argv, const char *windowName)
 
 void Controller::InitCamera()
 {
-	camera_ = new Camera(windowHandle_);
+	_camera = new Camera(_windowHandle);
 }
 
 void Controller::BeginLoop()
 {
-	while (!glfwWindowShouldClose(windowHandle_))
+	while (!glfwWindowShouldClose(_windowHandle))
     {
         /* Render here */
 		::g_controller->Render();
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(windowHandle_);
+        glfwSwapBuffers(_windowHandle);
 
         /* Poll for and process events */
         glfwPollEvents();
@@ -122,7 +122,7 @@ void Controller::BeginLoop()
 
 Controller::~Controller() {
 	glFinish();
-	glfwDestroyWindow(windowHandle_);
+	glfwDestroyWindow(_windowHandle);
 	glfwTerminate();
 }
 
@@ -130,44 +130,44 @@ void Controller::Reset() {
 #ifdef DEBUG_LEVEL
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 #endif
-	camera_->Reset();
+	_camera->Reset();
 
-	for(int i = 0 ; i < objectNo_ ; i++)
-		objects_[i]->Reset();
+	for(int i = 0 ; i < _objectNo ; i++)
+		_objects[i]->Reset();
 }
 
 void Controller::_ComputeFPS()
 {
-	numOfFrame_++;
-	elapsedTime_ += timer_.StopTimer();
-	timer_.StartTimer();
-	if(elapsedTime_ > 1) {
-		fps_ = numOfFrame_ / elapsedTime_;
-		//std::cout << fps_  << " "<< numOfFrame_ << std::endl;
-		elapsedTime_ = 0;
-		numOfFrame_ = 0;
+	_numOfFrame++;
+	_elapsedTime += _timer.StopTimer();
+	_timer.StartTimer();
+	if(_elapsedTime > 1) {
+		_fps = _numOfFrame / _elapsedTime;
+		//std::cout << _fps  << " "<< _numOfFrame << std::endl;
+		_elapsedTime = 0;
+		_numOfFrame = 0;
 	}
 	
 	//clear stringstream buffer
-	titleInfo_.str("");
-	titleInfo_ << windowName_;
-	titleInfo_ << "     FPS: ";
-	titleInfo_ << std::setprecision(4) << fps_;
-	titleInfo_.width(2);
+	_titleInfo.str("");
+	_titleInfo << _windowName;
+	_titleInfo << "     FPS: ";
+	_titleInfo << std::setprecision(4) << _fps;
+	_titleInfo.width(2);
 }
 
 void Controller::Render() {
 
 	//compute fps and display 
 	_ComputeFPS();
-	glfwSetWindowTitle(windowHandle_, titleInfo_.str().c_str() );
+	glfwSetWindowTitle(_windowHandle, _titleInfo.str().c_str() );
 
 
 	//Begin drawing scene
-	camera_->Reset();
-	for(int i = 0 ; i < objectNo_ ; i++) {
-		objects_[i]->SimulateStep();
-		objects_[i]->Show();
+	_camera->Reset();
+	for(int i = 0 ; i < _objectNo ; i++) {
+		_objects[i]->SimulateStep();
+		_objects[i]->Show();
 	}
 
 
@@ -178,22 +178,22 @@ void Controller::Render() {
 int Controller::GetActiveObject(int mx, int my)
 {
 	//FIXME: do some judgement;
-	return activeObj_;
+	return _activeObj;
 }
 
 void Controller::Quit() {
 	glFinish();
-	glfwDestroyWindow(windowHandle_);
+	glfwDestroyWindow(_windowHandle);
 	exit(0);
 }
 
 
 void Controller::Resize(GLFWwindow *window, int x, int y) {
-	winX_ = x;
-	winY_ = y;
+	_winX = x;
+	_winY = y;
 	
-	for(int i = 0 ; i < objectNo_ ; i++)
-		objects_[i]->Resize(window, x, y);
+	for(int i = 0 ; i < _objectNo ; i++)
+		_objects[i]->Resize(window, x, y);
 }
 
 void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods)
@@ -207,14 +207,14 @@ void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action
 				Reset();
 				break;
 			case GLFW_KEY_LEFT_CONTROL:
-				isCtrlPressed_ = true;
+				_isCtrlPressed = true;
 				break;
 		}
 	}
 	else if(action == GLFW_RELEASE)
 		switch (key) {
 			case GLFW_KEY_LEFT_CONTROL:
-				isCtrlPressed_ = false;
+				_isCtrlPressed = false;
 				break;
 		}
 }
@@ -224,19 +224,19 @@ void Controller::MouseButton(GLFWwindow *window, int button,int action,int mods)
 {
 	//get active object and then transfer the message to the object
 	if(action == GLFW_PRESS) {
-		glfwGetCursorPos(window, &prevX_, &prevY_);
+		glfwGetCursorPos(window, &_prevCursorX, &_prevCursorY);
 	}
-	activeObj_ = GetActiveObject(prevX_, prevY_);
-	objects_[activeObj_]->MouseButton(window, button, action, mods);
+	_activeObj = GetActiveObject(_prevCursorX, _prevCursorY);
+	_objects[_activeObj]->MouseButton(window, button, action, mods);
 }
 
 
 void Controller::MouseMotion(GLFWwindow *window, double nx, double ny) 
 {
-	objects_[activeObj_]->MouseMotion(window, nx, ny);
+	_objects[_activeObj]->MouseMotion(window, nx, ny);
 }
 
 void Controller::MouseScroll(GLFWwindow *window, double nx, double ny)
 {
-	objects_[activeObj_]->MouseScroll(window, nx, ny);
+	_objects[_activeObj]->MouseScroll(window, nx, ny);
 }

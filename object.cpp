@@ -7,12 +7,12 @@ Object::Object()
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 #endif
 	//Reset();
-	shaderProg_ = 0;
+	_shaderProg = 0;
 	memset(_hShaders, 0, sizeof(_hShaders) );
-	shaderNum = 0;
+	_shaderNum = 0;
 
 	//for rendering
-	g_stepSize = 0.001f;
+	_stepSize = 0.001f;
 }
 
 Object::~Object()
@@ -63,36 +63,36 @@ void Object::RebindShader(GLuint hVertexShader, GLuint hfragShader)
 	GLuint shaders[maxCount];
 
 	//get exists shaders
-    glGetAttachedShaders(shaderProg_, maxCount, &count, shaders);
+    glGetAttachedShaders(_shaderProg, maxCount, &count, shaders);
 	//and detach then
 	for (int i = 0; i < count; i++) {
-		glDetachShader(shaderProg_, shaders[i]);
+		glDetachShader(_shaderProg, shaders[i]);
 	}
 
     // Bind index 0 to the shader input variable "VerPos"
-    glBindAttribLocation(shaderProg_, 0, "VerPos");
+    glBindAttribLocation(_shaderProg, 0, "VerPos");
     // Bind index 1 to the shader input variable "VerClr"
-    glBindAttribLocation(shaderProg_, 1, "VerClr");
+    glBindAttribLocation(_shaderProg, 1, "VerClr");
 
-	glAttachShader(shaderProg_, hVertexShader);
-	glAttachShader(shaderProg_, hfragShader);
+	glAttachShader(_shaderProg, hVertexShader);
+	glAttachShader(_shaderProg, hfragShader);
 	
 	// Attempt to link
-	glLinkProgram(shaderProg_);
+	glLinkProgram(_shaderProg);
 
 	// Make sure link worked too
-	glGetProgramiv(shaderProg_, GL_LINK_STATUS, &testVal);
+	glGetProgramiv(_shaderProg, GL_LINK_STATUS, &testVal);
 	if(testVal == GL_FALSE) {
 		char infoLog[1024];
-		glGetProgramInfoLog(shaderProg_, 1024, NULL, infoLog);
-		std::cerr << "The program " << shaderProg_
+		glGetProgramInfoLog(_shaderProg, 1024, NULL, infoLog);
+		std::cerr << "The program " << _shaderProg
 			<< " failed to link with the following error:" << std::endl
 			<< infoLog << std::endl;
-		glDeleteProgram(shaderProg_);
+		glDeleteProgram(_shaderProg);
 		exit(-1);
 	}
 
-    glUseProgram(shaderProg_);
+    glUseProgram(_shaderProg);
 }
 
 void Object::CreateShaderProgram()
@@ -104,7 +104,7 @@ void Object::CreateShaderProgram()
 	hReturn = glCreateProgram();
 
 	// All done, return our ready to use shader program
-	shaderProg_ = hReturn;
+	_shaderProg = hReturn;
 }
 
 
@@ -151,7 +151,7 @@ void Object::RegisterShader(const char* progName, GLenum shaderType)
 		exit(-1);
 	}
 
-	_hShaders[shaderNum++] = hShader;
+	_hShaders[_shaderNum++] = hShader;
 
 
 #if 0
@@ -175,12 +175,12 @@ void Object::RegisterShader(const char* progName, GLenum shaderType)
 
 void Object::RegisterParentWindow(GLFWwindow* windowHandle)
 {
-	windowHandle_ = windowHandle;
+	_windowHandle = windowHandle;
 }
 
 void Object::Resize(GLFWwindow* windowHandle, int x, int y)
 {
-	arcball_.SetWidthHeight(x, y);
+	_arcball.SetWidthHeight(x, y);
 }
 
 void Object::MouseButton(GLFWwindow *window, int button,int action,int mods) 
@@ -190,27 +190,27 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 	if(button == GLFW_MOUSE_BUTTON_LEFT) {
 		::glfwGetCursorPos(window, &mouseX, &mouseY);
 		if(action == GLFW_PRESS) {
-			isLeftKeyPressed_ = true;
-			arcball_.StartRotation(mouseX, mouseY);
+			_isLeftKeyPressed = true;
+			_arcball.StartRotation(mouseX, mouseY);
 		}
 		else if(action == GLFW_RELEASE) {
-			isLeftKeyPressed_ = false;
-			arcball_.StopRotation();
+			_isLeftKeyPressed = false;
+			_arcball.StopRotation();
 		}
 	}
 	else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
-		isMiddleKeyPressed_ = (action == GLFW_PRESS);
+		_isMiddleKeyPressed = (action == GLFW_PRESS);
 	}
 	else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 #if 0
 		if (action == GLFW_PRESS) {
-			isRightKeyPressed_ = true;
+			_isRightKeyPressed = true;
 			::glfwGetCursorPos(window, &mouseX, &mouseY);
-			arcball_.StartZooming(mouseX, mouseY);
+			_arcball.StartZooming(mouseX, mouseY);
 		}
 		else if(action ==GLFW_RELEASE) {
-			isRightKeyPressed_ = false;
-			arcball_.StopZooming();
+			_isRightKeyPressed = false;
+			_arcball.StopZooming();
 		}
 #endif
 	}
@@ -218,23 +218,23 @@ void Object::MouseButton(GLFWwindow *window, int button,int action,int mods)
 
 void Object::MouseMotion(GLFWwindow *window, double nx, double ny) 
 {
-	if(isLeftKeyPressed_ && isCtrlPressed_) {
+	if(_isLeftKeyPressed && _isCtrlPressed) {
 	}
-	else if(isLeftKeyPressed_) {
-		arcball_.UpdateRotation(nx, ny);
+	else if(_isLeftKeyPressed) {
+		_arcball.UpdateRotation(nx, ny);
 	}
 #if 0
-	else if(isRightKeyPressed_) {
-		arcball_.UpdateZooming(nx, ny);
+	else if(_isRightKeyPressed) {
+		_arcball.UpdateZooming(nx, ny);
 	}
 #endif
 }
 
 void Object::MouseScroll(GLFWwindow *window, double nx, double ny)
 {
-	arcball_.StartZooming(0, 0);
-	arcball_.UpdateZooming(-ny, nx);
-	arcball_.StopZooming();
+	_arcball.StartZooming(0, 0);
+	_arcball.UpdateZooming(-ny, nx);
+	_arcball.StopZooming();
 }
 
 void Object::ComputeNormal(GLfloat v[3][3], GLfloat normal[]) 
@@ -267,30 +267,30 @@ void Object::Reset() {
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 #endif
 	int width, height;
-	glfwGetWindowSize(windowHandle_, &width, &height);
-	winX_ = width;
-	winY_ = height;
-	arcball_.SetWidthHeight(width, height);
+	glfwGetWindowSize(_windowHandle, &width, &height);
+	_winX = width;
+	_winY = height;
+	_arcball.SetWidthHeight(width, height);
 
 #if 1
-	depth_ = 3.8;
-	rotX_ = 10;
-	rotY_ = -20;
+	_depth = 3.8;
+	_rotX = 10;
+	_rotY = -20;
 
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glTranslatef(0, 0, -depth_);
-	glRotatef(rotX_, 1, 0, 0);
-	glRotatef(rotY_, 0, 1, 0);
+	glTranslatef(0, 0, -_depth);
+	glRotatef(_rotX, 1, 0, 0);
+	glRotatef(_rotY, 0, 1, 0);
 #endif
 }
 
 bool Object::LoadFile(char* fileName)
 {
-	file_.open(fileName);
-	if (!file_) {
+	_file.open(fileName);
+	if (!_file) {
 		std::cout << "Open file: " << fileName << " failed!" << std::endl;
 		return false;
 	}
@@ -299,13 +299,14 @@ bool Object::LoadFile(char* fileName)
 	return true;
 }
 
-void Object::Cube() {                               // 立方体の描画
+//this is a test function, just draw a cube
+void Object::Cube() { 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	GLfloat vertices[][3] = { { -1.0f/2, -1.0f/2, -1.0f/2 },
 		{ 1.0f/2, -1.0f/2, -1.0f/2}, { 1.0f/2, 1.0f/2, -1.0f/2 },
 		{ -1.0f/2, 1.0f/2, -1.0f/2 }, { -1.0f/2, -1.0f/2, 1.0f/2 },
 		{ 1.0f/2, -1.0f/2, 1.0f/2 }, { 1.0f/2, 1.0f/2, 1.0f/2 },
-		{ -1.0f/2, 1.0f/2, 1.0f/2 } };              // 頂点座標値 
+		{ -1.0f/2, 1.0f/2, 1.0f/2 } };              // Vertices
 	int faces[][4] = { { 1, 2, 6, 5 }, { 2, 3, 7, 6 }, { 4, 5, 6, 7 },
 		{ 0, 4, 7, 3 }, { 0, 1, 5, 4 }, { 0, 3, 2, 1 } };
 
@@ -313,11 +314,9 @@ void Object::Cube() {                               // 立方体の描画
 		{ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.5f, 0.5f },
 		{ 0.5f, 0.0f, 0.5f }, { 0.5f, 0.5f, 0.0f } };
 
-	// 各面の描画色
-	glBegin(GL_QUADS);                  // 四角形描画開始
+	glBegin(GL_QUADS);  
 	for (int i = 0; i < 6; i++) {
-		//	glBegin(GL_QUAD_STRIP);                  // 四角形描画開始
-		//glColor3fv(colors[i]);
+		glColor3fv(colors[i]);
 		
 		Eigen::Vector3f nm;
 		Eigen::Vector3f v0(vertices[faces[i][0]][0], vertices[faces[i][0]][1], vertices[faces[i][0]][2]);
@@ -331,9 +330,8 @@ void Object::Cube() {                               // 立方体の描画
 		glNormal3f(nm(0),nm(1),nm(2));
 		for (int j = 0; j < 4; j++)
 			glVertex3fv(vertices[faces[i][j]]);
-		//	glEnd();
-	}                                         // 四角形頂点列の指定
-	glEnd();                               // 四角形描画終了
+	}
+	glEnd();
 }
 
 void Object::Show() 

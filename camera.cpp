@@ -5,7 +5,7 @@ Camera::Camera(GLFWwindow* windowHandle) {
 #ifdef DEBUG_LEVEL
 	std::cout << __FILE__ << " " << __FUNCTION__ << std::endl;
 #endif
-	windowHandle_ = windowHandle;
+	_windowHandle = windowHandle;
 
 	//SetLight();
 	Reset();
@@ -48,17 +48,17 @@ void Camera::SetLight()
 
 void Camera::RegisterParentWindow(GLFWwindow* windowHandle)
 {
-	windowHandle_ = windowHandle;
+	_windowHandle = windowHandle;
 }
 
 void Camera::Reset()
 {
 
-	glfwGetWindowSize(windowHandle_, &winX_, &winY_);
-	FOV_ = 60.0f;
-	aspect_ = (GLfloat)winX_ / winY_;
-	nearClip_ = 0.1f;
-	farClip_ = 100.0f;
+	glfwGetWindowSize(_windowHandle, &_winX, &_winY);
+	_FOV = 60.0f;
+	_aspect = (GLfloat)_winX / _winY;
+	_nearClip = 0.1f;
+	_farClip = 100.0f;
 
 #if 1
 	glEnable(GL_DEPTH_TEST);
@@ -69,9 +69,9 @@ void Camera::Reset()
 	glLoadIdentity();
 
 	// Set perspective projection
-	gluPerspective(FOV_, aspect_, nearClip_, farClip_);
+	gluPerspective(_FOV, _aspect, _nearClip, _farClip);
 
-	glViewport(0, 0, winX_, winY_);
+	glViewport(0, 0, _winX, _winY);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -79,5 +79,5 @@ void Camera::Reset()
 
 void Camera::SetAspect(GLfloat aspect)		
 {
-	aspect_ = aspect;
+	_aspect = aspect;
 }

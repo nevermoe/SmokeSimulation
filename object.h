@@ -48,32 +48,32 @@ public:
 	void render(GLenum cullFace);
 
 protected:
-	std::fstream file_;
+	std::fstream _file;
 
-	GLfloat rotX_;
-	GLfloat rotY_;
-	GLfloat depth_;
+	GLfloat _rotX;
+	GLfloat _rotY;
+	GLfloat _depth;
 
 	//for event handling
-	bool isLeftKeyPressed_, isCtrlPressed_, isRightKeyPressed_, isMiddleKeyPressed_;
+	bool _isLeftKeyPressed, _isCtrlPressed, _isRightKeyPressed, _isMiddleKeyPressed;
 
-	Arcball arcball_;
+	Arcball _arcball;
 
-	GLFWwindow* windowHandle_;
-	int winX_, winY_;
+	GLFWwindow* _windowHandle;
+	int _winX, _winY;
 
-	GLuint shaderProg_;	 //shader
+	GLuint _shaderProg;	 //shader
 	GLuint _hShaders[10]; //support upto 10 shaders;
-	int shaderNum;			//current number of shaders
+	int _shaderNum;			//current number of shaders
 
 	//for rendering
-	float g_stepSize;
-	GLuint g_vao;
-	GLuint g_frameBuffer;
+	float _stepSize;
+	GLuint _vao;
+	GLuint _frameBuffer;
 	// transfer function
-	GLuint g_tffTexObj;
-	GLuint g_bfTexObj;
-	GLuint g_volTexObj;
+	GLuint _tffTexObj;
+	GLuint _bfTexObj;
+	GLuint _volTexObj;
 
 };
 

@@ -2,15 +2,14 @@
 #define _CORE_H
 
 #define PI 3.14159
-#define INF 99999999
-#define DEBUG_LEVEL
+#define INF (1<<31)
+//#define DEBUG_LEVEL
 
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <ctype.h>
-#include <png.h>
 
 #include <iostream>
 #include <fstream>
@@ -22,7 +21,6 @@
 #include <iomanip>
 
 
-#include <glm/glm.hpp>
 
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -36,13 +34,15 @@
 #include <GL/glew.h>
 #define GLFW_INCLUDE_GLU
 #include <GLFW/glfw3.h>
-#include <OpenMesh/Core/IO/MeshIO.hh>
-#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 
 #include "event_listener.h"
+
+//#include <OpenMesh/Core/IO/MeshIO.hh>
+//#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
+//#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+//#include <glm/glm.hpp>
 
 #endif

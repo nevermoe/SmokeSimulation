@@ -8,8 +8,8 @@
 #include "object.h"
 #include "renderer.h"
 
-#define DT  0.1
-#define RES 40			// box resolution
+#define DT  0.1				// time step
+#define RES 40			    // box resolution
 #define N ((RES)-2)			// valid simulation area
 #define SIZE ((RES)*(RES)*(RES))
 #define _I(x,y,z) (((x)*(RES)*(RES))+((y)*(RES))+(z))	//FIXME
@@ -22,20 +22,23 @@
 
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
 
+class Renderer;
+
 class Fluid: public Object
 {
 protected:
 	float _buffers[10][SIZE];
-	bool _isLightSelected;
-public:
 	float *_density, *_densityTmp;			// density
 	float *_velX, *_velXTmp;			// velocity in x direction
 	float *_velY, *_velYTmp;			// velocity in y direction
 	float *_velZ, *_velZTmp;			// velocity in z direction
 	float _dt;
 
-	Eigen::Vector3f _lightPos;
+
+	//for rendering
 	Renderer * _renderer;				//register a renderer
+	Eigen::Vector3f _lightPos;
+	bool _isLightSelected;
 
 protected:
 	// simulation methods
@@ -46,7 +49,7 @@ protected:
 	void EnforceBoundary(int b, float* quantity);
 	void Diffuse(int b, float* velTmp, float* vel, float diff);
 	void Advect(int b, float* quantityTmp, float* quantity, float* velX, float* velY, float* velZ);
-	void Project(void);
+	void Project();
 	void VorticityConfinement();
 
 	void VelocityStep();
@@ -56,11 +59,12 @@ protected:
 	void ClearBuffer(float* buf);
 	void ClearSources(void);
 
-	void _GenerateSmoke();
+	void GenerateSmoke();
 
 	virtual void MouseButton(GLFWwindow *window, int button,int action,int mods);
 	virtual void MouseMotion(GLFWwindow *window, double nx, double ny);
 	bool LightSelected(double mouseX, double mouseY);
+
 public:
 	float sd[SIZE], su[SIZE], sv[SIZE], sw[SIZE], sT[SIZE];	// sources for density and velocities
 	float diffusion, viscosity, buoyancy, vc_eps;
@@ -70,6 +74,7 @@ public:
 
 	virtual void SimulateStep();
 	virtual void Show();
+	const float* GetDensity();
 };
 
 #endif

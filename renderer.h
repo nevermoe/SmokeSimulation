@@ -5,11 +5,13 @@
 #define _RENDERER_H
 
 #include "core.h"
-#include "object.h"
+#include "fluid.h"
 
 class Fluid;	// forward definition
 
+#ifndef ALMOST_EQUAL
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
+#endif
 #define SLICE_NUM			64.0f
 
 
@@ -17,49 +19,46 @@ class Renderer
 {
 private:
 
-	FILE* _fp;				// data file
-	int _N;					// data resolution
-	int _nframes;			// number of frames in data file
-	int _cur_frame;
-
-		// OpenGL variables
-	unsigned char* _texture_data;
-	unsigned int _txt[3];				// texture handles
-	unsigned int _prog[2];				// program handles
-	unsigned int _font_base;			// first display list for font
-	double _persp_m[16], _ortho_m[16];	// projection matrices
-
-	float _light_dir[3];
+	// texture data
+	unsigned char* _textureData;
+	// texture handle
+	unsigned int _hTexture;				
+	//lighting infomations
+	Eigen::Vector3f _lightDir;
 	Eigen::Vector3f _lightPos;
-	int _ray_templ[4096][3];
+	int _rayTemplate[4096][3];
+
+	GLfloat _cubeVertices[8][3];
+	GLfloat _cubeEdges[12][2][3];
 
 	// draw the outline of the cube
-	void draw_cube(void);
+	void DrawCube(void);
 
-	// draw the slices. m must be the current rotation matrix.
-	// if frame==true, the outline of the slices will be drawn as well
-	void draw_slices(GLdouble m[16], bool frame);
-	// intersect a plane with the cube, helper function for draw_slices()
-	std::vector<Eigen::Vector3f> intersect_edges(float a, float b, float c, float d);
+	// draw the slices. mvMatrix must be the MODELVIEW_MATRIX
+	void DrawSlices(GLdouble mvMatrix[16]);
 
-	void gen_ray_templ(int edgelen);
-	void cast_light(int edgelen, const float* dens, unsigned char* intensity);
-	inline void light_ray(int x, int y, int z, int n, float decay, const float* dens, unsigned char* intensity);
+	// intersect a plane with the cube, helper function for DrawSlices()
+	// plane equation is Ax + By + Cz + D = 0
+	std::vector<Eigen::Vector3f> IntersectEdges(float A, float B, float C, float D);
+
+	void GenerateRayTemplate(int edgeLen);
+	void CastLight(int edgelen, const float* dens, unsigned char* intensity);
+	inline void LightRay(int x, int y, int z, int n, float decay, 
+			const float* dens, unsigned char* intensity);
 
 
-	void init_GL(void);
+	void InitGL();
 
+	// if _isDrawSliceOutline==true, the outline of the slices will be drawn as well
+	bool _isDrawSliceOutline;
 public:
 	Renderer();
 	~Renderer();
 	void SetLightPostion(Eigen::Vector3f &pos);
 
-	bool _draw_slice_outline;
-	char* _dispstring;
 
-	void FillTexture(Fluid* fluid);		// generate data from simulation
-	void Render(void);						// draw the volume
-
+	void FillTexture(Fluid* fluid);		// generate texture from smoke density 
+	void Render(void);					// draw the volume
 };
 
 

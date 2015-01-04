@@ -4,16 +4,16 @@
 
 Timer::Timer()
 {
-	startTime_ = stopTime_ = elapsedTime_ = 0;
+	_startTime = _stopTime = _elapsedTime = 0;
 }
 
 void Timer::StartTimer()
 {
-	startTime_ = glfwGetTime();
+	_startTime = glfwGetTime();
 }
 
 double Timer::StopTimer()
 {
-	stopTime_ = glfwGetTime();
-	return (stopTime_ - startTime_);
+	_stopTime = glfwGetTime();
+	return (_stopTime - _startTime);
 }

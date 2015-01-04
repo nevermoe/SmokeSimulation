@@ -24,10 +24,15 @@ Fluid::Fluid()
 	ClearSources();
 
 	_lightPos[0] = -1.2f;
-	_lightPos[1] = 1.2f;
+	_lightPos[1] = 0.2f;
 	_lightPos[2] = 1.2f;
 	_renderer = new Renderer();
 	_renderer->SetLightPostion(_lightPos);
+}
+
+const float* Fluid::GetDensity()
+{
+	return _density;
 }
 
 bool Fluid::LightSelected(double mouseX, double mouseY)
@@ -40,12 +45,12 @@ bool Fluid::LightSelected(double mouseX, double mouseY)
 	glGetIntegerv(GL_VIEWPORT, viewportMatrix);
 
 	//point on 'near' plane
-	gluUnProject(mouseX, winY_-mouseY, 0.0,  mvMatrix,  projMatrix,
+	gluUnProject(mouseX, _winY-mouseY, 0.0,  mvMatrix,  projMatrix,
 			viewportMatrix, &objX, &objY, &objZ);
 	Eigen::Vector3f ptNear(objX,objY, objZ); 
 
 	//point on 'far' plane
-	gluUnProject(mouseX, winY_-mouseY, 1.0,  mvMatrix,  projMatrix,
+	gluUnProject(mouseX, _winY-mouseY, 1.0,  mvMatrix,  projMatrix,
 			viewportMatrix, &objX, &objY, &objZ);
 	Eigen::Vector3f ptFar(objX,objY, objZ); 
 
@@ -75,35 +80,35 @@ void Fluid::MouseButton(GLFWwindow *window, int button,int action,int mods)
 	if(button == GLFW_MOUSE_BUTTON_LEFT) {
 		::glfwGetCursorPos(window, &mouseX, &mouseY);
 		if(action == GLFW_PRESS) {
-			isLeftKeyPressed_ = true;
+			_isLeftKeyPressed = true;
 
 			if (LightSelected(mouseX, mouseY)) {
 				std::cout << "light selected" << std::endl;
 				_isLightSelected = true;
-				arcball_.StartDragging(mouseX, mouseY);
+				_arcball.StartDragging(mouseX, mouseY);
 			}
-			arcball_.StartRotation(mouseX, mouseY);
+			_arcball.StartRotation(mouseX, mouseY);
 		}
 		else if(action == GLFW_RELEASE) {
-			isLeftKeyPressed_ = false;
+			_isLeftKeyPressed = false;
 			_isLightSelected = false;
-			arcball_.StopRotation();
-			arcball_.StopDragging();
+			_arcball.StopRotation();
+			_arcball.StopDragging();
 		}
 	}
 	else if(button == GLFW_MOUSE_BUTTON_MIDDLE) {
-		isMiddleKeyPressed_ = (action == GLFW_PRESS);
+		_isMiddleKeyPressed = (action == GLFW_PRESS);
 	}
 	else if(button == GLFW_MOUSE_BUTTON_RIGHT) {
 #if 0
 		if (action == GLFW_PRESS) {
-			isRightKeyPressed_ = true;
+			_isRightKeyPressed = true;
 			::glfwGetCursorPos(window, &mouseX, &mouseY);
-			arcball_.StartZooming(mouseX, mouseY);
+			_arcball.StartZooming(mouseX, mouseY);
 		}
 		else if(action ==GLFW_RELEASE) {
-			isRightKeyPressed_ = false;
-			arcball_.StopZooming();
+			_isRightKeyPressed = false;
+			_arcball.StopZooming();
 		}
 #endif
 	}
@@ -111,18 +116,18 @@ void Fluid::MouseButton(GLFWwindow *window, int button,int action,int mods)
 
 void Fluid::MouseMotion(GLFWwindow *window, double nx, double ny) 
 {
-	if(isLeftKeyPressed_ && isCtrlPressed_) {
+	if(_isLeftKeyPressed && _isCtrlPressed) {
 	}
-	else if(isLeftKeyPressed_ && _isLightSelected) {
-		_lightPos += arcball_.UpdateDragging(nx, ny);
+	else if(_isLeftKeyPressed && _isLightSelected) {
+		_lightPos += _arcball.UpdateDragging(nx, ny);
 		_renderer->SetLightPostion(_lightPos);
 	}
-	else if(isLeftKeyPressed_) {
-		arcball_.UpdateRotation(nx, ny);
+	else if(_isLeftKeyPressed) {
+		_arcball.UpdateRotation(nx, ny);
 	}
 #if 0
-	else if(isRightKeyPressed_) {
-		arcball_.UpdateZooming(nx, ny);
+	else if(_isRightKeyPressed) {
+		_arcball.UpdateZooming(nx, ny);
 	}
 #endif
 }
@@ -225,27 +230,27 @@ void Fluid::Project(void)
 	float h;
 	h = 1.0f/N;
 	FOR_ALL_CELL {
-				div[_I(i,j,k)] = -h*(
-					_velX[_I(i+1,j,k)]-_velX[_I(i-1,j,k)]+
-					_velY[_I(i,j+1,k)]-_velY[_I(i,j-1,k)]+
-					_velZ[_I(i,j,k+1)]-_velZ[_I(i,j,k-1)])/3;
-				p[_I(i,j,k)] = 0;
+		div[_I(i,j,k)] = -h*(
+				_velX[_I(i+1,j,k)]-_velX[_I(i-1,j,k)]+
+				_velY[_I(i,j+1,k)]-_velY[_I(i,j-1,k)]+
+				_velZ[_I(i,j,k+1)]-_velZ[_I(i,j,k-1)])/3;
+		p[_I(i,j,k)] = 0;
 	} END_FOR
 	EnforceBoundary(0,div); EnforceBoundary(0,p);
 	for (l=0; l<20; l++) 
 	{
 		FOR_ALL_CELL {
-					p[_I(i,j,k)] = (div[_I(i,j,k)]+
-						p[_I(i-1,j,k)]+p[_I(i+1,j,k)]+
-						p[_I(i,j-1,k)]+p[_I(i,j+1,k)]+
-						p[_I(i,j,k-1)]+p[_I(i,j,k+1)])/6;
+			p[_I(i,j,k)] = (div[_I(i,j,k)]+
+					p[_I(i-1,j,k)]+p[_I(i+1,j,k)]+
+					p[_I(i,j-1,k)]+p[_I(i,j+1,k)]+
+					p[_I(i,j,k-1)]+p[_I(i,j,k+1)])/6;
 		} END_FOR
 		EnforceBoundary(0,p);
 	}
 	FOR_ALL_CELL {
-				_velX[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])/3/h;
-				_velY[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])/3/h;
-				_velZ[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])/3/h;
+		_velX[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])/3/h;
+		_velY[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])/3/h;
+		_velZ[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])/3/h;
 	} END_FOR
 	EnforceBoundary(1,_velX); EnforceBoundary(2,_velY);
 }
@@ -258,37 +263,37 @@ void Fluid::VorticityConfinement()
 	float dt0 = _dt * vc_eps;
 
 	FOR_ALL_CELL {
-				ijk = _I(i,j,k);
-				// curlx = dw/dy - dv/dz
-				curlX[ijk] = (_velZ[_I(i,j+1,k)] - _velZ[_I(i,j-1,k)]) * 0.5f -
-					(_velY[_I(i,j,k+1)] - _velY[_I(i,j,k-1)]) * 0.5f;
+		ijk = _I(i,j,k);
+		// curlx = dw/dy - dv/dz
+		curlX[ijk] = (_velZ[_I(i,j+1,k)] - _velZ[_I(i,j-1,k)]) * 0.5f -
+			(_velY[_I(i,j,k+1)] - _velY[_I(i,j,k-1)]) * 0.5f;
 
-				// curly = du/dz - dw/dx
-				curlY[ijk] = (_velX[_I(i,j,k+1)] - _velX[_I(i,j,k-1)]) * 0.5f -
-					(_velZ[_I(i+1,j,k)] - _velZ[_I(i-1,j,k)]) * 0.5f;
+		// curly = du/dz - dw/dx
+		curlY[ijk] = (_velX[_I(i,j,k+1)] - _velX[_I(i,j,k-1)]) * 0.5f -
+			(_velZ[_I(i+1,j,k)] - _velZ[_I(i-1,j,k)]) * 0.5f;
 
-				// curlz = dv/dx - du/dy
-				curlZ[ijk] = (_velY[_I(i+1,j,k)] - _velY[_I(i-1,j,k)]) * 0.5f -
-					(_velX[_I(i,j+1,k)] - _velX[_I(i,j-1,k)]) * 0.5f;
+		// curlz = dv/dx - du/dy
+		curlZ[ijk] = (_velY[_I(i+1,j,k)] - _velY[_I(i-1,j,k)]) * 0.5f -
+			(_velX[_I(i,j+1,k)] - _velX[_I(i,j-1,k)]) * 0.5f;
 
-				// curl = |curl|
-				curl[ijk] = sqrtf(curlX[ijk]*curlX[ijk] +
-						curlY[ijk]*curlY[ijk] +
-						curlZ[ijk]*curlZ[ijk]);
+		// curl = |curl|
+		curl[ijk] = sqrtf(curlX[ijk]*curlX[ijk] +
+				curlY[ijk]*curlY[ijk] +
+				curlZ[ijk]*curlZ[ijk]);
 	} END_FOR
 
 	FOR_ALL_CELL {
-				ijk = _I(i,j,k);
-				float nX = (curl[_I(i+1,j,k)] - curl[_I(i-1,j,k)]) * 0.5f;
-				float nY = (curl[_I(i,j+1,k)] - curl[_I(i,j-1,k)]) * 0.5f;
-				float nZ = (curl[_I(i,j,k+1)] - curl[_I(i,j,k-1)]) * 0.5f;
-				float len1 = 1.0f/(sqrtf(nX*nX+nY*nY+nZ*nZ)+0.0000001f);
-				nX *= len1;
-				nY *= len1;
-				nZ *= len1;
-				_velX[ijk] += (nY*curlZ[ijk] - nZ*curlY[ijk]) * dt0;
-				_velY[ijk] += (nZ*curlX[ijk] - nX*curlZ[ijk]) * dt0;
-				_velZ[ijk] += (nX*curlY[ijk] - nY*curlX[ijk]) * dt0;
+		ijk = _I(i,j,k);
+		float nX = (curl[_I(i+1,j,k)] - curl[_I(i-1,j,k)]) * 0.5f;
+		float nY = (curl[_I(i,j+1,k)] - curl[_I(i,j-1,k)]) * 0.5f;
+		float nZ = (curl[_I(i,j,k+1)] - curl[_I(i,j,k-1)]) * 0.5f;
+		float len1 = 1.0f/(sqrtf(nX*nX+nY*nY+nZ*nZ)+0.0000001f);
+		nX *= len1;
+		nY *= len1;
+		nZ *= len1;
+		_velX[ijk] += (nY*curlZ[ijk] - nZ*curlY[ijk]) * dt0;
+		_velY[ijk] += (nZ*curlX[ijk] - nX*curlZ[ijk]) * dt0;
+		_velZ[ijk] += (nX*curlY[ijk] - nY*curlX[ijk]) * dt0;
 	} END_FOR
 }
 
@@ -346,7 +351,7 @@ void Fluid::DensityStep()
 #endif
 }
 
-void Fluid::_GenerateSmoke()
+void Fluid::GenerateSmoke()
 {
 	const int centerY = RES/4;
 	const int centerZ = RES/2;
@@ -364,7 +369,7 @@ void Fluid::_GenerateSmoke()
 
 void Fluid::SimulateStep()
 {
-	_GenerateSmoke();
+	GenerateSmoke();
 
 	VelocityStep();
 	DensityStep();
