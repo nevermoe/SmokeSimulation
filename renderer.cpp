@@ -1,6 +1,3 @@
-/* Adapted from: Johannes Schmid, 2006 
- * https://graphics.ethz.ch/teaching/former/imagesynthesis_06/miniprojects/p3 */
-
 #include "renderer.h"
 
 
