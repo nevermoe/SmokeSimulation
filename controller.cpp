@@ -217,6 +217,9 @@ void Controller::Keyboard(GLFWwindow * window, int key, int scancode, int action
 				_isCtrlPressed = false;
 				break;
 		}
+
+	//route message to active object
+	_objects[_activeObj]->Keyboard(window, key, scancode, action, mods);
 }
 
 

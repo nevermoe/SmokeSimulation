@@ -28,9 +28,6 @@ private:
 	GLfloat _cubeVertices[8][3];
 	GLfloat _cubeEdges[12][2][3];
 
-	// draw the outline of the cube
-	void DrawCube(void);
-
 	// draw the slices. mvMatrix must be the MODELVIEW_MATRIX
 	void DrawSlices(GLdouble mvMatrix[16]);
 
@@ -56,6 +53,9 @@ public:
 
 	void FillTexture(Fluid* fluid);		// generate texture from smoke density 
 	void Render(void);					// draw the volume
+	// draw the outline of the cube
+	void DrawCube(void);
+
 };
 
 

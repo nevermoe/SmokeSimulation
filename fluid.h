@@ -36,6 +36,7 @@ protected:
 	Renderer * _renderer;				//register a renderer
 	Eigen::Vector3f _lightPos;
 	bool _isLightSelected;
+	bool _isRendering;
 
 protected:
 	// simulation methods
@@ -60,6 +61,7 @@ protected:
 
 	virtual void MouseButton(GLFWwindow *window, int button,int action,int mods);
 	virtual void MouseMotion(GLFWwindow *window, double nx, double ny);
+	virtual void Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods);
 	bool LightSelected(double mouseX, double mouseY);
 
 public:

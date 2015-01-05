@@ -302,11 +302,11 @@ bool Object::LoadFile(char* fileName)
 //this is a test function, just draw a cube
 void Object::Cube() { 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	GLfloat vertices[][3] = { { -1.0f/2, -1.0f/2, -1.0f/2 },
-		{ 1.0f/2, -1.0f/2, -1.0f/2}, { 1.0f/2, 1.0f/2, -1.0f/2 },
-		{ -1.0f/2, 1.0f/2, -1.0f/2 }, { -1.0f/2, -1.0f/2, 1.0f/2 },
-		{ 1.0f/2, -1.0f/2, 1.0f/2 }, { 1.0f/2, 1.0f/2, 1.0f/2 },
-		{ -1.0f/2, 1.0f/2, 1.0f/2 } };              // Vertices
+	GLfloat vertices[][3] = { { -1.0f, -1.0f, -1.0f },
+		{ 1.0f, -1.0f, -1.0f}, { 1.0f, 1.0f, -1.0f },
+		{ -1.0f, 1.0f, -1.0f }, { -1.0f, -1.0f, 1.0f },
+		{ 1.0f, -1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f },
+		{ -1.0f, 1.0f, 1.0f } };              // Vertices
 	int faces[][4] = { { 1, 2, 6, 5 }, { 2, 3, 7, 6 }, { 4, 5, 6, 7 },
 		{ 0, 4, 7, 3 }, { 0, 1, 5, 4 }, { 0, 3, 2, 1 } };
 
@@ -314,9 +314,9 @@ void Object::Cube() {
 		{ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.5f, 0.5f },
 		{ 0.5f, 0.0f, 0.5f }, { 0.5f, 0.5f, 0.0f } };
 
-	glBegin(GL_QUADS);  
+	//glBegin(GL_QUADS);  
 	for (int i = 0; i < 6; i++) {
-		glColor3fv(colors[i]);
+		//glColor3fv(colors[i]);
 		
 		Eigen::Vector3f nm;
 		Eigen::Vector3f v0(vertices[faces[i][0]][0], vertices[faces[i][0]][1], vertices[faces[i][0]][2]);
@@ -328,10 +328,12 @@ void Object::Cube() {
 		nm.normalize();
 
 		glNormal3f(nm(0),nm(1),nm(2));
+		glBegin(GL_LINE_STRIP);
 		for (int j = 0; j < 4; j++)
 			glVertex3fv(vertices[faces[i][j]]);
+		glEnd();
 	}
-	glEnd();
+	//glEnd();
 }
 
 void Object::Show() 

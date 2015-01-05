@@ -8,6 +8,7 @@ Fluid::Fluid()
 	vc_eps    = 5.0f;
 	_dt = DT;
 	_isLightSelected = false;
+	_isRendering = true;
 
 	for (int i=0; i<10; i++)
 		ClearBuffer(_buffers[i]);
@@ -127,6 +128,17 @@ void Fluid::MouseMotion(GLFWwindow *window, double nx, double ny)
 		_arcball.UpdateZooming(nx, ny);
 	}
 #endif
+}
+
+void Fluid::Keyboard(GLFWwindow * window, int key, int scancode, int action, int mods)
+{
+	if (action == GLFW_PRESS) {
+		switch(key) {
+			case GLFW_KEY_S:		// Rendering on/off
+				_isRendering = !_isRendering;
+				break;
+		}
+	}
 }
 
 Fluid::~Fluid()
@@ -377,25 +389,46 @@ void Fluid::SimulateStep()
 void Fluid::Show()
 {
 #if 1
-	_renderer->FillTexture(this);
-	_renderer->Render();
+	if (_isRendering) {	//render
+		_renderer->FillTexture(this);
+		_renderer->Render();
+	}
+	else {	//without rendering
+		Cube();
+		glBegin(GL_POINTS);
+		FOR_ALL_CELL {
+			if(!ALMOST_EQUAL(_density[_I(i,j,k)], 0) ) {
+				glVertex3f(((float)i/N-0.5)*2, ((float)j/N-0.5)*2, ((float)k/N-0.5)*2 );
+			}
+		} END_FOR
+		glEnd();
 
+		glPointSize(13.0f);
+		glBegin(GL_POINTS);
+		glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+		glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glEnd();
+		glPointSize(1.0f);
+	}
 #else
-	glBegin(GL_POINTS);
-	FOR_ALL_CELL {
-		if(!ALMOST_EQUAL(_density[_I(i,j,k)], 0) ) {
-			glVertex3f(((float)i/N-0.5)*2, ((float)j/N-0.5)*2, ((float)k/N-0.5)*2 );
-		}
-	} END_FOR
-	glEnd();
+		glEnable(GL_DEPTH_TEST);
+		glBegin(GL_POINTS);
+		FOR_ALL_CELL {
+			if(!ALMOST_EQUAL(_density[_I(i,j,k)], 0) ) {
+				glVertex3f(((float)i/N-0.5)*2, ((float)j/N-0.5)*2, ((float)k/N-0.5)*2 );
+			}
+		} END_FOR
+		glEnd();
 
-	glPointSize(13.0f);
-	glBegin(GL_POINTS);
-	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
-	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glEnd();
-	glPointSize(1.0f);
+		glPointSize(13.0f);
+		glBegin(GL_POINTS);
+		glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+		glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glEnd();
+		glPointSize(1.0f);
+
 #endif
 }
 

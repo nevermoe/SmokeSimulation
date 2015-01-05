@@ -80,10 +80,10 @@ void Renderer::Render(void)
 	glDisable(GL_DEPTH_TEST);	//Important in this rendering
 
 	DrawCube();
-	
 	//core rendering parts
 	DrawSlices(mvMatrix);
 
+	glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -224,6 +224,8 @@ void Renderer::DrawSlices(GLdouble mvMatrix[16])
 		}
 		n++;
 	}
+
+	glDisable(GL_TEXTURE_3D);
 }
 
 std::vector<Eigen::Vector3f> Renderer::IntersectEdges(float A, float B, float C, float D)
