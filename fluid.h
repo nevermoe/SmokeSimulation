@@ -1,6 +1,3 @@
-/* Adapted from: Johannes Schmid, 2006 
- * https://graphics.ethz.ch/teaching/former/imagesynthesis_06/miniprojects/p3 */
-
 #ifndef _FLUID_H
 #define _FLUID_H
 
