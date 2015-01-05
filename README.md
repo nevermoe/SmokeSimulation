@@ -19,7 +19,7 @@ This is a fluid simulation program. The smoke is simulated using Euler method (g
 		Mouse:
 		
 			1. Change angle of view with mouse left key, and zoom with middle key.
-			2. Select the Light and drag to chang light position.
+			2. Select the Light and drag to change light position.
 
 		Keyboard:
 		
