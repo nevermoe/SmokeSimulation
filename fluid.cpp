@@ -9,6 +9,7 @@ Fluid::Fluid()
 	_dt = DT;
 	_isLightSelected = false;
 	_isRendering = true;
+	_isDrawSliceOutline = false;
 
 	for (int i=0; i<10; i++)
 		ClearBuffer(_buffers[i]);
@@ -24,7 +25,7 @@ Fluid::Fluid()
 	_lightPos[0] = -1.2f;
 	_lightPos[1] = 0.2f;
 	_lightPos[2] = 1.2f;
-	_renderer = new Renderer();
+	_renderer = new Renderer(_density, RES);
 	_renderer->SetLightPostion(_lightPos);
 }
 
@@ -136,6 +137,11 @@ void Fluid::Keyboard(GLFWwindow * window, int key, int scancode, int action, int
 		switch(key) {
 			case GLFW_KEY_S:		// Rendering on/off
 				_isRendering = !_isRendering;
+				_renderer->SetRendering(_isRendering);
+				break;
+			case GLFW_KEY_W:		//wireframe on/off
+				_isDrawSliceOutline = !_isDrawSliceOutline;
+				_renderer->SetSliceOutline(_isDrawSliceOutline);
 				break;
 		}
 	}
@@ -213,9 +219,9 @@ inline void Fluid::Advect(int b, float* quantityTmp, float* quantity, float* vel
 	float xx, yy, zz, dt0;
 	dt0 = _dt*N;
 	FOR_ALL_CELL {
-		xx = i-dt0*velX[_I(i,j,k)];
-		yy = j-dt0*velY[_I(i,j,k)];
-		zz = k-dt0*velZ[_I(i,j,k)];
+		xx = i - dt0*velX[_I(i,j,k)];
+		yy = j - dt0*velY[_I(i,j,k)];
+		zz = k - dt0*velZ[_I(i,j,k)];
 		if (xx<0.5) xx=0.5f; if (xx>N+0.5) xx=N+0.5f; i0=(int)xx; i1=i0+1;
 		if (yy<0.5) yy=0.5f; if (yy>N+0.5) yy=N+0.5f; j0=(int)yy; j1=j0+1;
 		if (zz<0.5) zz=0.5f; if (zz>N+0.5) zz=N+0.5f; k0=(int)zz; k1=k0+1;
@@ -388,11 +394,9 @@ void Fluid::SimulateStep()
 
 void Fluid::Show()
 {
-#if 1
-	if (_isRendering) {	//render
-		_renderer->FillTexture(this);
-		_renderer->Render();
-	}
+	_renderer->FillTexture();
+	_renderer->Render();
+/*	
 	else {	//without rendering
 		Cube();
 		glBegin(GL_POINTS);
@@ -411,25 +415,7 @@ void Fluid::Show()
 		glEnd();
 		glPointSize(1.0f);
 	}
-#else
-		glEnable(GL_DEPTH_TEST);
-		glBegin(GL_POINTS);
-		FOR_ALL_CELL {
-			if(!ALMOST_EQUAL(_density[_I(i,j,k)], 0) ) {
-				glVertex3f(((float)i/N-0.5)*2, ((float)j/N-0.5)*2, ((float)k/N-0.5)*2 );
-			}
-		} END_FOR
-		glEnd();
-
-		glPointSize(13.0f);
-		glBegin(GL_POINTS);
-		glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
-		glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		glEnd();
-		glPointSize(1.0f);
-
-#endif
+	*/
 }
 
 

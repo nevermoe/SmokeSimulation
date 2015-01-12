@@ -1,11 +1,15 @@
 #include "renderer.h"
 
-
-
-Renderer::Renderer()
+Renderer::Renderer(float* volumeData, int RES)
 {
 	_textureData = NULL;
 	_isDrawSliceOutline = false;
+	_isRendering = true;
+
+	_RES = RES;
+	_N = _RES - 2;
+	_SIZE = _RES*_RES*_RES;
+	_volumeData = volumeData;
 
 	// cube vertices
 	GLfloat cv[][3] = {
@@ -48,7 +52,7 @@ void Renderer::SetLightPostion(Eigen::Vector3f &pos)
 	_lightPos = pos;
 	_lightDir = -_lightPos;
 
-	GenerateRayTemplate(RES);
+	GenerateRayTemplate(_RES);
 }
 
 void Renderer::InitGL()
@@ -80,10 +84,59 @@ void Renderer::Render(void)
 	glDisable(GL_DEPTH_TEST);	//Important in this rendering
 
 	DrawCube();
-	//core rendering parts
-	DrawSlices(mvMatrix);
+	DrawLight();
+	if(_isRendering) {
+		//core rendering parts
+		DrawSlices(mvMatrix);
+	}
+	else 
+		DrawVolumeData();
 
 	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DrawLight()
+{
+	
+	glPushAttrib(GL_POINT_BIT | GL_CURRENT_BIT);	//save current state
+	//draw light
+	glPointSize(13.0f);
+	glBegin(GL_POINTS);
+	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
+	glEnd();
+	glPopAttrib();		//restore painting state
+}
+
+void Renderer::DrawVolumeData()
+{
+	glBegin(GL_POINTS);
+	FOR_ALL_CELL {
+		if(!ALMOST_EQUAL(_volumeData[_I(i,j,k)], 0) ) {
+			glVertex3f(((float)i/_N-0.5)*2, ((float)j/_N-0.5)*2, ((float)k/_N-0.5)*2 );
+		}
+	} END_FOR
+	glEnd();
+
+	glPointSize(13.0f);
+	glBegin(GL_POINTS);
+	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnd();
+	glPointSize(1.0f);
+
+}
+
+
+void Renderer::SetRendering(bool isRendering)
+{
+	_isRendering = isRendering;
+}
+
+void Renderer::SetSliceOutline(bool isDrawSliceOutline)
+{
+	_isDrawSliceOutline = isDrawSliceOutline;
 }
 
 
@@ -136,15 +189,6 @@ void Renderer::DrawCube(void)
 	glVertex3fv(cv[2]); glVertex3fv(cv[6]);
 	glVertex3fv(cv[3]); glVertex3fv(cv[7]);
 	glEnd();
-
-	
-	//draw light
-	glPointSize(13.0f);
-	glBegin(GL_POINTS);
-	glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
-	glVertex3f(_lightPos[0], _lightPos[1], _lightPos[2]);
-	glEnd();
-
 
 }
 
@@ -251,27 +295,27 @@ std::vector<Eigen::Vector3f> Renderer::IntersectEdges(float A, float B, float C,
 }
 
 
-void Renderer::FillTexture(Fluid* fluid)
+void Renderer::FillTexture()
 {
 	if (_textureData == NULL) {
-		_textureData = new unsigned char[SIZE*4];
+		_textureData = new unsigned char[_SIZE*4];
 	}
-	memset(_textureData, 0, SIZE*4);
+	memset(_textureData, 0, _SIZE*4);
 
-	const float *density = fluid->GetDensity();
-	unsigned char* intensity = new unsigned char[SIZE];
-	memset(intensity, 0, SIZE);
-	CastLight(RES, density, intensity);
+	const float *density = _volumeData;
+	unsigned char* intensity = new unsigned char[_SIZE];
+	memset(intensity, 0, _SIZE);
+	CastLight(_RES, density, intensity);
 
 #if 1
 	//FIXME: It is important to beware that texture coordinate
 	//is in reverse order  of the simulation coordinate
-	for (int i = 0 ; i < RES ; i++) {
-		for (int j = 0 ; j < RES ; j++) {
-			for (int k = 0 ; k < RES ; k++) {
+	for (int i = 0 ; i < _RES ; i++) {
+		for (int j = 0 ; j < _RES ; j++) {
+			for (int k = 0 ; k < _RES ; k++) {
 				//unsigned char c = 200;
-				int texIndex = i*RES*RES + j*RES + k;	/*reverse order*/
-				int densIndex = k*RES*RES + j*RES + i;
+				int texIndex = i*_RES*_RES + j*_RES + k;	/*reverse order*/
+				int densIndex = k*_RES*_RES + j*_RES + i;
 				unsigned char c = intensity[densIndex];
 				_textureData[texIndex*4] = c;
 				_textureData[texIndex*4+1] = c;
@@ -282,7 +326,7 @@ void Renderer::FillTexture(Fluid* fluid)
 		}
 	}
 #else
-	for (int i=0; i<SIZE; i++) {
+	for (int i=0; i<_SIZE; i++) {
 		unsigned char c = intensity[i];
 		//unsigned char c = 200;
 		_textureData[(i<<2)] = c;
@@ -295,7 +339,7 @@ void Renderer::FillTexture(Fluid* fluid)
 	delete []intensity;
 
 	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, RES, RES, RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, _textureData);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, _RES, _RES, _RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, _textureData);
 }
 
 void Renderer::GenerateRayTemplate(int edgeLen)

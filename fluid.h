@@ -9,12 +9,16 @@
 #define RES 40			    // box resolution
 #define N ((RES)-2)			// valid simulation area
 #define SIZE ((RES)*(RES)*(RES))
+
+#undef _I
 #define _I(x,y,z) (((x)*(RES)*(RES))+((y)*(RES))+(z))	//FIXME
 
+#undef FOR_ALL_CELL
 #define FOR_ALL_CELL for (int i=1; i<=(N); i++) {\
 	for (int j=1; j<=(N); j++) {\
 		for (int k=1; k<=(N); k++) {
 
+#undef END_FOR
 #define END_FOR }}}
 
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
@@ -37,6 +41,7 @@ protected:
 	Eigen::Vector3f _lightPos;
 	bool _isLightSelected;
 	bool _isRendering;
+	bool _isDrawSliceOutline;
 
 protected:
 	// simulation methods

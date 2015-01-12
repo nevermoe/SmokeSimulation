@@ -2,13 +2,22 @@
 #define _RENDERER_H
 
 #include "core.h"
-#include "fluid.h"
-
-class Fluid;	// forward definition
 
 #ifndef ALMOST_EQUAL
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
 #endif
+
+#ifndef _I
+#define _I(x,y,z) (((x)*(_RES)*(_RES))+((y)*(_RES))+(z))	//FIXME
+#endif
+
+#ifndef FOR_ALL_CELL
+#define FOR_ALL_CELL for (int i=1; i<=(_N); i++) {\
+	for (int j=1; j<=(_N); j++) {\
+		for (int k=1; k<=(_N); k++) {
+#define END_FOR }}}
+#endif
+
 #define SLICE_NUM			64.0f
 
 
@@ -24,6 +33,7 @@ private:
 	Eigen::Vector3f _lightDir;
 	Eigen::Vector3f _lightPos;
 	int _rayTemplate[4096][3];
+	float *_volumeData;
 
 	GLfloat _cubeVertices[8][3];
 	GLfloat _cubeEdges[12][2][3];
@@ -45,16 +55,25 @@ private:
 
 	// if _isDrawSliceOutline==true, the outline of the slices will be drawn as well
 	bool _isDrawSliceOutline;
+	bool _isRendering;
+
+	int _SIZE;		//size of volume data
+	int _N;			//
+	int _RES;		//
 public:
-	Renderer();
+	Renderer(float* volumeData, int RES);
 	~Renderer();
 	void SetLightPostion(Eigen::Vector3f &pos);
+	void SetRendering(bool isRendering);
+	void SetSliceOutline(bool isDrawSliceOutline);
 
 
-	void FillTexture(Fluid* fluid);		// generate texture from smoke density 
-	void Render(void);					// draw the volume
+	void FillTexture();		// generate texture from smoke density 
+	void Render();					// draw the volume
 	// draw the outline of the cube
-	void DrawCube(void);
+	void DrawCube();
+	void DrawLight();
+	void DrawVolumeData();
 
 };
 
