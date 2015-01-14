@@ -1,4 +1,4 @@
-This is a fluid simulation program. The smoke is simulated using Euler method (grid-based method), and rendered with volume ray casting.
+This is a fluid simulation program. The smoke is simulated using Euler method (grid-based method), and rendered with volume ray casting. See [this video](https://www.youtube.com/watch?v=7UAFDXSXJu4&feature=youtu.be).
 
 
 1. Prerequisites:
