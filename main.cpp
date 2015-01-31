@@ -12,6 +12,9 @@
 Controller* g_controller = NULL;
 
 int main(int argc, char **argv) {
+#if 1
+	glutInit(&argc, argv);
+#endif
 	::g_controller = new Controller(argc, argv, WINDOW_NAME);
 	Object* object = new Fluid;
 

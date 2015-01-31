@@ -4,6 +4,7 @@
 #include "core.h"
 #include "object.h"
 #include "renderer.h"
+#include "GLSL_program.h"
 
 #define DT  0.1				// time step
 #define RES 40			    // box resolution
@@ -35,9 +36,8 @@ protected:
 	float *_velZ, *_velZTmp;			// velocity in z direction
 	float _dt;
 
-
 	//for rendering
-	Renderer * _renderer;				//register a renderer
+	Renderer *_renderer;				//register a renderer
 	Eigen::Vector3f _lightPos;
 	bool _isLightSelected;
 	bool _isRendering;

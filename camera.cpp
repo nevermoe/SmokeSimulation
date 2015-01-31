@@ -54,6 +54,7 @@ void Camera::RegisterParentWindow(GLFWwindow* windowHandle)
 void Camera::Reset()
 {
 
+#if 1
 	glfwGetWindowSize(_windowHandle, &_winX, &_winY);
 	_FOV = 60.0f;
 	_aspect = (GLfloat)_winX / _winY;
@@ -75,6 +76,7 @@ void Camera::Reset()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+#endif
 }
 
 void Camera::SetAspect(GLfloat aspect)		

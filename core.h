@@ -37,6 +37,9 @@
 
 #include <GL/gl.h>
 #include <GL/glu.h>
+#if 1
+#include <GL/glut.h>
+#endif
 
 #include "event_listener.h"
 

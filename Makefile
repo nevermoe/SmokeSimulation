@@ -13,7 +13,7 @@ endif
 LIBS_PATH = -L/usr/local/lib/OpenMesh
 LIBS_PATH += -L/usr/local/lib
 
-LIBS = -lGLEW -lGL -lGLU -lglfw3 -lX11  -lXrandr -lpthread -lXi
+LIBS = -lGLEW -lGL -lGLU -lglfw3 -lX11  -lXrandr -lpthread -lXi -lglut
 LIBS += -lOpenMeshCore -lOpenMeshTools
 
 SRC := $(shell find . -name "*.cpp")

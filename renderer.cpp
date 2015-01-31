@@ -1,8 +1,194 @@
 #include "renderer.h"
+#include <GL/glut.h>
 
+int const fbo_width = 1280;
+int const fbo_height = 960;
+
+GLuint fb, color, depth;
+
+void CHECK_FRAMEBUFFER_STATUS()
+{                                                         
+	std::cout << __FUNCTION__ << " " << __LINE__ << std::endl;
+	GLenum status;
+	status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER); 
+	switch(status) {
+	case GL_FRAMEBUFFER_COMPLETE:
+		break;
+
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+	/* choose different formats */
+		std::cout << "unsupport" << std::endl;
+		break;
+
+	default:
+		/* programming error; will fail on all hardware */
+		fputs("Framebuffer Error\n", stderr);
+		exit(-1);
+	}
+}
+
+float const light_dir[]={1,1,1,0};
+float const light_color[]={1,0.95,0.9,1};
+
+void Renderer::prepare()
+{
+	static float a=0, b=0, c=0;
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//_showTex->UnBind();
+	glEnable(GL_TEXTURE_2D);
+#if 0
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+#else
+	_fbo->Bind();
+#endif
+
+	glViewport(0,0, fbo_width, fbo_height);
+
+	glClearColor(1,1,1,0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45, 1, 1, 10);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHTING);
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
+
+	glTranslatef(0,0,-5);
+
+	glRotatef(a, 1, 0, 0);
+	glRotatef(b, 0, 1, 0);
+	glRotatef(c, 0, 0, 1);
+
+	glutSolidTeapot(0.75);
+
+	a=fmod(a+0.1, 360.);
+	b=fmod(b+0.5, 360.);
+	c=fmod(c+0.25, 360.);
+#if 0
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+	_fbo->Disable();
+#endif
+}
+
+void Renderer::final1()
+{
+	static float a=0, b=0, c=0;
+
+	const int win_width  = 1280;
+	const int win_height = 960;
+	const float aspect = (float)win_width/(float)win_height;
+
+	
+	glViewport(0,0, win_width, win_height);
+
+	glClearColor(1.,1.,1.,0.);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45, aspect, 1, 10);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(0,0,-5);
+
+	//glRotatef(b, 0, 1, 0);
+
+	//b=fmod(b+0.5, 360.);
+
+	glEnable(GL_TEXTURE_2D);
+#if 0
+	glBindTexture(GL_TEXTURE_2D, color);
+#else
+	_showTex->Bind();
+#endif
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glDisable(GL_LIGHTING);
+
+#if 0
+	float cube[][5]=
+	{
+		{-1, -1, -1,  0,  0},
+		{ 1, -1, -1,  1,  0},
+		{ 1,  1, -1,  1,  1},
+		{-1,  1, -1,  0,  1},
+
+		{-1, -1,  1, -1,  0},
+		{ 1, -1,  1,  0,  0},
+		{ 1,  1,  1,  0,  1},
+		{-1,  1,  1, -1,  1},
+	};
+	unsigned int faces[]=
+	{
+		0, 1, 2, 3,
+		1, 5, 6, 2,
+		5, 4, 7, 6,
+		4, 0, 3, 7,
+		3, 2, 6, 7,
+		4, 5, 1, 0
+	};
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), &cube[0][0]);
+	glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), &cube[0][3]);
+
+	glCullFace(GL_BACK);
+	glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, faces);
+
+	//glCullFace(GL_FRONT);
+	//glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, faces);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+
+	glBegin(GL_QUADS);
+
+	glVertex3f(-1.0f, -1.0f, -1.0f); // The bottom left corner
+	glTexCoord2f(0.0f, 0.0f);
+
+	glVertex3f(1.0f, -1.0f, -1.0f); // The top left corner
+	glTexCoord2f(1.0f, 0.0f);
+
+	glVertex3f(1.0f, 1.0f, -1.0f); // The top right corner
+	glTexCoord2f(1.0f, 1.0f);
+
+	glVertex3f(-1.0f, 1.0f, -1.0f); // The bottom right corner
+	glTexCoord2f(0.0f, 1.0f);
+
+	glEnd();
+#endif
+
+	_showTex->UnBind();
+
+}
+
+
+
+//#################################################################################
 Renderer::Renderer(float* volumeData, int RES)
 {
-	_textureData = NULL;
+
 	_isDrawSliceOutline = false;
 	_isRendering = true;
 
@@ -38,6 +224,24 @@ Renderer::Renderer(float* volumeData, int RES)
 	memcpy(_cubeVertices, cv, sizeof(_cubeVertices) );
 	memcpy(_cubeEdges, ce, sizeof(_cubeEdges) );
 
+	//create a volume texture
+	_textureData = NULL;
+	_volumeTex3D = new GLTexture(_RES, _RES, _RES, GL_RGBA, GL_RGBA,
+			GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+
+#if 0
+	//create framebuffer and bind to a texture
+	_showTex = new GLTexture(1280, 960, 0, GL_RGBA, GL_RGBA, 
+			GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	_showTex->LoadToGPU();
+	
+	_fbo = new FramebufferObject();
+	_fbo->Bind();
+	_fbo->AttachTexture(GL_TEXTURE_2D, _showTex->GetTextureID(), GL_COLOR_ATTACHMENT0_EXT);
+	_fbo->IsValid();
+	_fbo->Disable();
+#endif
+
 	InitGL();
 }
 
@@ -57,27 +261,78 @@ void Renderer::SetLightPostion(Eigen::Vector3f &pos)
 
 void Renderer::InitGL()
 {
-	glEnable(GL_TEXTURE_3D);
-	glDisable(GL_DEPTH_TEST);
-	glCullFace(GL_FRONT);
+	//glEnable(GL_TEXTURE_3D);
+	//glDisable(GL_DEPTH_TEST);
+	//glCullFace(GL_FRONT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	//############################################
+	glGenFramebuffers(1, &fb);
+	glGenTextures(1, &color);
+	glGenRenderbuffers(1, &depth);
 
-	glGenTextures(2, &_hTexture);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glBindTexture(GL_TEXTURE_3D, _hTexture);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,GL_CLAMP);
+#if 0
+	glBindTexture(GL_TEXTURE_2D, color);
+	glTexImage2D(	GL_TEXTURE_2D, 
+			0, 
+			GL_RGBA, 
+			fbo_width, fbo_height,
+			0, 
+			GL_RGBA, 
+			GL_UNSIGNED_BYTE, 
+			NULL);
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
 
+#else
+	_showTex = new GLTexture(1280, 960, 0, GL_RGBA, GL_RGBA, 
+			GL_UNSIGNED_BYTE, GL_LINEAR, GL_CLAMP);
+	_showTex->LoadToGPU(NULL);
+#endif
+
+	//glBindRenderbuffer(GL_RENDERBUFFER, depth);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbo_width, fbo_height);
+	//glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
+
+	_fbo = new FramebufferObject();
+	_fbo->Bind();
+	_fbo->AttachTexture(GL_TEXTURE_2D, _showTex->GetTextureID(), GL_COLOR_ATTACHMENT0_EXT);
+	_fbo->IsValid();
+	_fbo->Disable();
+
+	CHECK_FRAMEBUFFER_STATUS();
+
+}
+
+void Renderer::drawSlice(float z)
+{
+    glBegin(GL_QUADS);
+    glTexCoord3f(0.0f, 0.0f, z); glVertex2f(-1.0f, -1.0f);
+    glTexCoord3f(1.0f, 0.0f, z); glVertex2f(1.0f, -1.0f);
+    glTexCoord3f(1.0f, 1.0f, z); glVertex2f(1.0f, 1.0f);
+    glTexCoord3f(0.0f, 1.0f, z); glVertex2f(-1.0f, 1.0f);
+    glEnd();
 }
 
 void Renderer::Render(void)
 {
+
+#if 1
+
+	//glEnable(GL_TEXTURE_2D);
+	_fbo->Bind();
+#if 1
+	glClearColor(1,1,1,0);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+	//glPushAttrib(GL_VIEWPORT_BIT);	//save current state
+
+	//glViewport(0,0, fbo_width, fbo_height);
 	GLdouble mvMatrix[16];
 	glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
 
@@ -93,6 +348,79 @@ void Renderer::Render(void)
 		DrawVolumeData();
 
 	glEnable(GL_DEPTH_TEST);
+
+	//glPopAttrib();
+#else
+	prepare();
+#endif
+
+	_fbo->Disable();
+
+
+	//###################
+#if 1
+	glEnable(GL_TEXTURE_2D);
+#else
+	glEnable(GL_TEXTURE_3D);
+#endif
+	//glPushMatrix();
+	//const int win_width  = 1280;
+	//const int win_height = 960;
+	//const float aspect = (float)win_width/(float)win_height;
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//gluPerspective(45, aspect, 1, 10);
+
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
+	//glTranslatef(0,0,-5);
+
+	_showTex->Bind();
+	glBegin(GL_QUADS);
+
+
+#if 0
+    for(int z=0; z<_RES; z++) {
+        // attach texture slice to FBO
+        _fbo->AttachTexture(GL_TEXTURE_3D, _showTex->GetTextureID(), GL_COLOR_ATTACHMENT0_EXT, 0, z);
+        // render
+        drawSlice(z + 0.5);
+		//std::cout << z << std::endl;
+    }
+
+#else
+
+	
+	glVertex3f(-1.0f, -1.0f, -1.0f); // The bottom left corner
+	glTexCoord3f(-1.0f, -1.0f, -1.0f); // The bottom left corner
+	//glTexCoord2f(0.0f, 0.0f);
+
+	glVertex3f(1.0f, -1.0f, -1.0f); // The top left corner
+	glTexCoord3f(1.0f, -1.0f, -1.0f); // The top left corner
+	//glTexCoord2f(1.0f, 0.0f);
+
+	glVertex3f(1.0f, 1.0f, -1.0f); // The top right corner
+	glTexCoord3f(1.0f, 1.0f, -1.0f); // The top right corner
+	//glTexCoord2f(1.0f, 1.0f);
+
+	glVertex3f(-1.0f, 1.0f, -1.0f); // The bottom right corner
+	glTexCoord3f(-1.0f, 1.0f, -1.0f); // The bottom right corner
+	//glTexCoord2f(0.0f, 1.0f);
+
+	glEnd();
+#endif
+
+
+	_showTex->UnBind();
+	//glPopMatrix();
+
+//	glDisable(GL_TEXTURE_3D);
+#else
+	prepare();
+	final1();
+#endif
+
+
 }
 
 void Renderer::DrawLight()
@@ -338,8 +666,7 @@ void Renderer::FillTexture()
 
 	delete []intensity;
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, _RES, _RES, _RES, 0, GL_RGBA, GL_UNSIGNED_BYTE, _textureData);
+	_volumeTex3D->LoadToGPU(_textureData);
 }
 
 void Renderer::GenerateRayTemplate(int edgeLen)

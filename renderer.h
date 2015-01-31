@@ -2,6 +2,8 @@
 #define _RENDERER_H
 
 #include "core.h"
+#include "GL_texture.h"
+#include "GL_framebuffer_object.h"
 
 #ifndef ALMOST_EQUAL
 #define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?true:false)
@@ -24,11 +26,16 @@
 class Renderer
 {
 private:
+	
+	//for shader
+	//GLSLProgram _shaderProg;
+	GLTexture *_volumeTex3D;
+	GLTexture *_showTex;
+	FramebufferObject *_fbo;
 
 	// texture data
 	unsigned char* _textureData;
-	// texture handle
-	unsigned int _hTexture;				
+
 	//lighting infomations
 	Eigen::Vector3f _lightDir;
 	Eigen::Vector3f _lightPos;
@@ -75,6 +82,11 @@ public:
 	void DrawLight();
 	void DrawVolumeData();
 
+
+	//test
+	void prepare();
+	void final1();
+	void drawSlice(float z);
 };
 
 
